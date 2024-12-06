@@ -1,4 +1,5 @@
 import "dotenv/config";
+import Readline from 'readline'
 import { stageAllChanges, git } from "./src/stageChanges.js";
 import { countTokens, modelName } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
@@ -24,9 +25,9 @@ async function main() {
       const commitMessage = await generateCommitMessage(diff);
       console.log("\nSuggested commit message:");
       console.log(commitMessage);
-      
+
       // Prompt for user confirmation
-      const readline = require('readline').createInterface({
+      const readline = Readline.createInterface({
         input: process.stdin,
         output: process.stdout
       });
