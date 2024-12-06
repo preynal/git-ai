@@ -1,6 +1,6 @@
 # `git ai`
 
-It stages all changes and generates a human-readable commit message using language models.
+It stages all changes and generates a commit message using LLMs (gpt-4o-mini).
 
 What it does:
 ```bash
