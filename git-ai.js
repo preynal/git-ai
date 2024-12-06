@@ -72,8 +72,7 @@ async function main() {
             await new Promise((resolve, reject) => {
               gitCommit.on('close', (code) => {
                 if (code === 0) {
-                  const commitTime = new Date().toLocaleString();
-                  console.log(`✅ Changes committed successfully! - Timestamp: ${commitTime}`);
+                  console.log(`✅ Changes committed successfully!`);
                   resolve();
                 } else {
                   reject(new Error(`Git commit failed with code ${code}`));
