@@ -42,9 +42,7 @@ async function main() {
         // Enter key
         if (key === '\r' || key === '\n') {
           try {
-            // Clear the previous two lines
-            process.stdout.moveCursor(0, -1);
-            process.stdout.clearLine(0);
+            // Clear the previous line
             process.stdout.moveCursor(0, -1);
             process.stdout.clearLine(0);
             process.stdout.cursorTo(0);
