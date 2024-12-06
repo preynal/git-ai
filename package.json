@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "main": "./index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "stage-all": "node index.js"
+  },
+  "dependencies": {
+    "simple-git": "^3.21.0"
   }
 }
