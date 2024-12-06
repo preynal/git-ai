@@ -1,4 +1,5 @@
 const simpleGit = require('simple-git');
+const { encoding_for_model } = require('tiktoken');
 
 const git = simpleGit();
 
@@ -35,4 +36,26 @@ async function stageAllChanges() {
     }
 }
 
-stageAllChanges();
+async function countTokens(text) {
+    const enc = encoding_for_model('gpt-4');
+    const tokens = enc.encode(text);
+    enc.free(); // Free up memory
+    return tokens.length;
+}
+
+async function main() {
+    await stageAllChanges();
+    
+    try {
+        // Get the diff again to count tokens
+        const diff = await git.diff(['--staged']);
+        if (diff) {
+            const tokenCount = await countTokens(diff);
+            console.log(`\nThis diff would use approximately ${tokenCount} tokens with GPT-4`);
+        }
+    } catch (error) {
+        console.error('❌ Error counting tokens:', error.message);
+    }
+}
+
+main();
