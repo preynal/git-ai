@@ -12,7 +12,7 @@ async function main() {
     const diff = await git.diff(["--staged", "--color"]);
     if (diff) {
       const tokenCount = await countTokens(diff);
-      const cost = (tokenCount / 1000000) * pricePerMillionTokens;
+      const cost = (tokenCount / 1_000_000) * pricePerMillionTokens;
       console.log(
         `\nThis request will use approximately ${tokenCount} tokens with ${modelName}`,
         `\nEstimated cost: $${cost.toFixed(6)} (at $${pricePerMillionTokens} per million tokens)`,
