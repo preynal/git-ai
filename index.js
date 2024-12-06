@@ -30,7 +30,7 @@ async function main() {
       process.stdin.resume();
       process.stdin.setEncoding('utf8');
 
-      console.log('\nPress Enter to commit with this message, or any other key to cancel...');
+      console.log('Press Enter to commit with this message, or any other key to cancel...');
 
       // Handle keypress
       process.stdin.once('data', async (key) => {
