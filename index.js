@@ -26,20 +26,35 @@ async function main() {
       console.log("\nSuggested commit message:");
       console.log(commitMessage);
 
-      // Prompt for user confirmation
-      const readline = Readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
+      // Set up stdin for raw input
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.setEncoding('utf8');
 
-      readline.question('\nPress Enter to commit with this message, or Ctrl+C to cancel...', async (input) => {
-        readline.close();
-        try {
-          await git.commit(commitMessage);
-          console.log("✅ Changes committed successfully!");
-        } catch (commitError) {
-          console.error("❌ Error committing changes:", commitError.message);
+      console.log('\nPress Enter to commit with this message, or any other key to cancel...');
+
+      // Handle keypress
+      process.stdin.once('data', async (key) => {
+        // ctrl-c ( end of text )
+        if (key === '\u0003') {
+          process.exit();
         }
+        
+        // Enter key
+        if (key === '\r' || key === '\n') {
+          try {
+            await git.commit(commitMessage);
+            console.log("✅ Changes committed successfully!");
+          } catch (commitError) {
+            console.error("❌ Error committing changes:", commitError.message);
+          }
+        } else {
+          console.log("❌ Commit cancelled");
+        }
+        
+        // Clean up and exit
+        process.stdin.setRawMode(false);
+        process.stdin.pause();
       });
     }
   } catch (error) {
