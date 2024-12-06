@@ -7,18 +7,19 @@ export async function stageAllChanges() {
     // Get the status of the repository
     const status = await git.status();
 
-    // Stage only modified files
+    // Stage modified files if there are any
     if (status.modified.length > 0) {
       // Add only modified files
       for (const file of status.modified) {
         await git.add(file);
       }
       console.log("✅ All modified files have been staged successfully!");
+    }
 
-      // Show what was staged with stats
-      const finalStatus = await git.status();
+    // Show staged changes regardless of whether we just staged them or not
+    const finalStatus = await git.status();
+    if (finalStatus.staged.length > 0) {
       console.log("\nStaged changes:");
-
       // Get diff stats for staged files with enhanced color
       const diffStat = await git.diff([
         "--staged",
@@ -31,7 +32,7 @@ export async function stageAllChanges() {
       ]);
       console.log(diffStat);
     } else {
-      console.log("No changes to stage.");
+      console.log("No staged changes found.");
     }
   } catch (error) {
     console.error("❌ Error staging changes:", error.message);
