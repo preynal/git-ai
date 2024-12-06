@@ -7,12 +7,13 @@ async function stageAllChanges() {
         // Get the status of the repository
         const status = await git.status();
 
-        // Stage all modified, new, and deleted files
-        if (status.modified.length > 0
-            || status.not_added.length > 0
-            || status.deleted.length > 0) {
-            await git.add('.');
-            console.log('✅ All changes have been staged successfully!');
+        // Stage only modified files
+        if (status.modified.length > 0) {
+            // Add only modified files
+            for (const file of status.modified) {
+                await git.add(file);
+            }
+            console.log('✅ All modified files have been staged successfully!');
 
             // Show what was staged
             const finalStatus = await git.status();
