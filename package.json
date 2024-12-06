@@ -9,6 +9,8 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "dotenv": "16.4.7",
+    "openai": "4.76.0",
     "simple-git": "3.27.0",
     "tiktoken": "1.0.17"
   },
