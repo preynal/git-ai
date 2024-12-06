@@ -42,14 +42,17 @@ async function main() {
         // Enter key
         if (key === '\r' || key === '\n') {
           try {
-            // Clear the previous line
+            // Clear the previous two lines
+            process.stdout.moveCursor(0, -1);
+            process.stdout.clearLine(0);
+            process.stdout.moveCursor(0, -1);
             process.stdout.clearLine(0);
             process.stdout.cursorTo(0);
 
             const result = await git.commit(commitMessage);
             const commitHash = result.commit;
             const commitTime = new Date().toLocaleString();
-            console.log(`✅ Changes committed successfully!\nCommit: ${commitHash}\nTimestamp: ${commitTime}`);
+            console.log(`✅ Changes committed successfully!\nCommit: ${commitHash.substr(0, 8)} - Timestamp: ${commitTime}`);
           } catch (commitError) {
             console.error("❌ Error committing changes:", commitError.message);
           }
