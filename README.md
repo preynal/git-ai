@@ -1,6 +1,6 @@
 # `git ai`
 
-It stages all changes and generates a commit message using LLMs (gpt-4o-mini).
+Stage all changes and generate a commit message using LLMs (gpt-4o-mini) in one command.
 
 What it does:
 ```bash
