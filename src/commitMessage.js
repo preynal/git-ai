@@ -3,7 +3,6 @@ import ora from 'ora';
 import config from './config.js';
 import { countTokens } from './tokenCounter.js';
 
-const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
 function filterExcludedFiles(diff) {
   const lines = diff.split('\n');
@@ -48,6 +47,8 @@ export async function generateCommitMessage(diff) {
       spinner.fail(`Diff is too large (${tokenCount} tokens). Maximum allowed is ${config.maxDiffTokens} tokens`);
       throw new Error(`Diff exceeds maximum token limit of ${config.maxDiffTokens}`);
     }
+
+    const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

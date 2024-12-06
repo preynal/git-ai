@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Load .env from the script's directory
 dotenv.config({ path: join(__dirname, '.env') });
+
 import { stageAllChanges, git } from "./src/stageChanges.js";
 import { countTokens } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
