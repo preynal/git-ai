@@ -12,14 +12,19 @@ import { stageAllChanges } from "./src/stageChanges.js";
 import { git } from "./src/git.js";
 import { countTokens } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
-import { excludedFiles, pricePerMillionTokens, modelName } from "./src/config.js";
+import { pricePerMillionTokens, modelName } from "./src/config.js";
+import { filterExcludedFiles } from './src/filterExcludedFiles.js';
+import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 
 async function main() {
   await stageAllChanges();
 
   try {
     // Get the diff again to count tokens
-    const diff = await git.diff(["--staged", "--color"]);
+    const unfilteredDiff = await git.diff(["--staged"])
+    const excludedFilesList = await getExcludedFilesList()
+    const diff = filterExcludedFiles(unfilteredDiff);
+
     if (diff) {
       const tokenCount = await countTokens(diff);
       const cost = (tokenCount / 1_000_000) * pricePerMillionTokens;
@@ -28,7 +33,9 @@ async function main() {
         `\nEstimated cost: $${cost.toFixed(6)} (at $${pricePerMillionTokens} per million tokens)`,
       );
 
-      console.log("Excluded files:", excludedFiles.join(", "));
+      if (excludedFilesList.length > 0) {
+        console.log("Excluded files:", `\x1b[33m${excludedFilesList.join(", ")}\x1b[0m`);
+      }
 
       // Generate commit message suggestion
       const commitMessage = await generateCommitMessage(diff);

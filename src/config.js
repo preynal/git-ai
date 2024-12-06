@@ -1,4 +1,4 @@
-// Files to exclude from OpenAI diff
+// Files to exclude from diff
 export const excludedFiles = ["yarn.lock", "package-lock.json", ".env", ".env.*"];
 
 export const pricePerMillionTokens = 0.150;

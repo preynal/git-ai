@@ -2,31 +2,8 @@ import OpenAI from "openai";
 import ora from 'ora';
 import config from './config.js';
 import { countTokens } from './tokenCounter.js';
+import { filterExcludedFiles } from "./filterExcludedFiles.js";
 
-
-function filterExcludedFiles(diff) {
-  const lines = diff.split('\n');
-  let filteredLines = [];
-  let skipFile = false;
-
-  for (const line of lines) {
-    // Check for diff file headers
-    if (line.startsWith('diff --git')) {
-      // Check if this file should be excluded
-      skipFile = config.excludedFiles.some(excludedFile =>
-        line.includes(`/${excludedFile}`) || line.includes(` ${excludedFile}`)
-      );
-    }
-
-
-    // Only include lines if we're not skipping the current file
-    if (!skipFile) {
-      filteredLines.push(line);
-    }
-  }
-
-  return filteredLines.join('\n');
-}
 
 export async function generateCommitMessage(diff) {
   const spinner = ora('Generating commit message...').start();
