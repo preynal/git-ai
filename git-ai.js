@@ -1,4 +1,11 @@
-import "dotenv/config";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import dotenv from 'dotenv';
+
+// Get the directory path of the current module
+const __dirname = dirname(fileURLToPath(import.meta.url));
+// Load .env from the script's directory
+dotenv.config({ path: join(__dirname, '.env') });
 import { stageAllChanges, git } from "./src/stageChanges.js";
 import { countTokens } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
