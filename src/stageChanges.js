@@ -2,18 +2,10 @@ import {git} from "./git.js";
 
 export async function stageAllChanges() {
   try {
-    // Get the status of the repository
-    const status = await git.status();
+    // Stage all changes (new, modified, and deleted files)
+    await git.add(["-A"]);
 
-    // Stage modified files if there are any
-    if (status.modified.length > 0) {
-      // Add only modified files
-      for (const file of status.modified) {
-        await git.add(file);
-      }
-    }
-
-    // Show staged changes regardless of whether we just staged them or not
+    // Get status to show what was staged
     const finalStatus = await git.status();
     if (finalStatus.staged.length > 0) {
       console.log("\nStaged changes:");
