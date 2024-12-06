@@ -14,13 +14,13 @@ A CLI tool that uses OpenAI's GPT models to automatically generate meaningful an
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
-cd [repository-name]
+git clone https://github.com/preynal/git-ai
+cd ./git-ai
 ```
 
 2. Install dependencies:
 ```bash
-yarn install
+yarn
 # or
 npm install
 ```
