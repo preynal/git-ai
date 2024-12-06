@@ -31,21 +31,21 @@ Create a `.env` file in the root directory:
 OPENAI_API_KEY=your-api-key
 ```
 
-## Usage
+## Recommended Usage
 
-1. Stage your changes using git:
-```bash
-git add .
-# or stage specific files
-git add file1.js file2.js
+Add a `git ai` alias to your `~/.gitconfig` file:
+
+``` file=.gitconfig
+[alias]
+	ai = "!NODE_PATH=$HOME/preynal/git-ai/node_modules node $HOME/preynal/git-ai/index.js"
 ```
 
-2. Generate commit message:
-```bash
-yarn start
-# or
-npm start
+Then in any git reposoritory, you can run:
 ```
+git ai
+```
+
+It will add all changes to the staging area, generate a commit message, and you can approve it by pressing Enter.
 
 ## Configuration
 
@@ -58,7 +58,7 @@ The tool can be configured through `src/config.js`:
 
 ## Requirements
 
-- Node.js 16 or higher
+- Tested on Node.js 22 LTS
 - Git
 - OpenAI API key
 
