@@ -72,7 +72,7 @@ async function main() {
             await new Promise((resolve, reject) => {
               gitCommit.on('close', (code) => {
                 if (code === 0) {
-                  console.log(`✅ Changes committed successfully!`);
+                  console.log(`\x1b[32m✔\x1b[0m Changes committed successfully!`);
                   resolve();
                 } else {
                   reject(new Error(`Git commit failed with code ${code}`));
