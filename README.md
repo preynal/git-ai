@@ -37,7 +37,7 @@ Add a `git ai` alias to your `~/.gitconfig` file:
 
 ``` file=.gitconfig
 [alias]
-	ai = "!NODE_PATH=$HOME/preynal/git-ai/node_modules node $HOME/preynal/git-ai/index.js"
+	ai = "!node <PATH_TO_CLONED_DIR>/git-ai.js"
 ```
 
 Then in any git reposoritory, you can run:
