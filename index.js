@@ -20,7 +20,7 @@ async function stageAllChanges() {
             const finalStatus = await git.status();
             console.log('\nStaged changes:');
             finalStatus.staged.forEach((file) => console.log(`- ${file}`));
-            
+
             // Show the diff of staged changes
             const diff = await git.diff(['--staged']);
             if (diff) {
@@ -36,8 +36,10 @@ async function stageAllChanges() {
     }
 }
 
+const modelName = "gpt-4o-mini"
+
 async function countTokens(text) {
-    const enc = encoding_for_model('gpt-4');
+    const enc = encoding_for_model(modelName);
     const tokens = enc.encode(text);
     enc.free(); // Free up memory
     return tokens.length;
@@ -45,13 +47,13 @@ async function countTokens(text) {
 
 async function main() {
     await stageAllChanges();
-    
+
     try {
         // Get the diff again to count tokens
         const diff = await git.diff(['--staged']);
         if (diff) {
             const tokenCount = await countTokens(diff);
-            console.log(`\nThis diff would use approximately ${tokenCount} tokens with GPT-4`);
+            console.log(`\nThis diff would use approximately ${tokenCount} tokens with ${modelName}`);
         }
     } catch (error) {
         console.error('❌ Error counting tokens:', error.message);

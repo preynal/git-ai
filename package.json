@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "main": "./index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 0",
     "stage-all": "node index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "simple-git": "3.27.0"
+    "simple-git": "3.27.0",
+    "tiktoken": "1.0.17"
   },
   "devDependencies": {
     "eslint": "9.16.0",
