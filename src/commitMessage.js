@@ -18,6 +18,7 @@ function filterExcludedFiles(diff) {
       );
     }
 
+
     // Only include lines if we're not skipping the current file
     if (!skipFile) {
       filteredLines.push(line);
