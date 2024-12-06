@@ -59,9 +59,9 @@ async function main() {
         if (key === '\r' || key === '\n') {
           try {
             // Clear the previous line
-            process.stdout.moveCursor(0, -1);
-            process.stdout.clearLine(0);
-            process.stdout.cursorTo(0);
+            // process.stdout.moveCursor(0, -1);
+            // process.stdout.clearLine(0);
+            // process.stdout.cursorTo(0);
 
             // Use spawn to run git commit with inherited stdio
             const gitCommit = spawn('git', ['commit', '-m', commitMessage], {
@@ -72,7 +72,7 @@ async function main() {
             await new Promise((resolve, reject) => {
               gitCommit.on('close', (code) => {
                 if (code === 0) {
-                  console.log(`\x1b[32m✔\x1b[0m Changes committed successfully!`);
+                  console.log(`\n\x1b[32m✔\x1b[0m Changes committed successfully!`);
                   resolve();
                 } else {
                   reject(new Error(`Git commit failed with code ${code}`));
