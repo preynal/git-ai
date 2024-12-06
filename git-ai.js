@@ -59,9 +59,10 @@ async function main() {
         if (key === '\r' || key === '\n') {
           try {
             // Clear the previous line
-            // process.stdout.moveCursor(0, -1);
-            // process.stdout.clearLine(0);
-            // process.stdout.cursorTo(0);
+            process.stdout.moveCursor(0, -1);
+            process.stdout.clearLine(0);
+            process.stdout.cursorTo(0);
+            process.stdout.write("\n")
 
             // Use spawn to run git commit with inherited stdio
             const gitCommit = spawn('git', ['commit', '-m', commitMessage], {
