@@ -30,7 +30,7 @@ async function main() {
       const cost = (tokenCount / 1_000_000) * pricePerMillionTokens;
       console.log(
         `This request will use approximately ${tokenCount} tokens with ${modelName}`,
-        `\nEstimated cost: $${cost.toFixed(6)} (at $${pricePerMillionTokens} per million tokens)`,
+        `\nEstimated cost: $${cost.toFixed(6)} ($${pricePerMillionTokens} / 1M input tokens)`,
       );
 
       if (excludedFilesList.length > 0) {
