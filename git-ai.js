@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import dotenv from 'dotenv';
 
 // Get the directory path of the current module
@@ -55,10 +57,13 @@ async function main() {
             process.stdout.clearLine(0);
             process.stdout.cursorTo(0);
 
-            const result = await git.commit(commitMessage);
-            const commitHash = result.commit;
+            const execAsync = promisify(exec);
+            const { stdout } = await execAsync(`git commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
+            
+            // Get the commit hash from the commit output
+            const commitHash = stdout.match(/\[.*?([a-f0-9]+)\]/)?.[1] || '';
             const commitTime = new Date().toLocaleString();
-            console.log(`✅ Changes committed successfully!\nCommit: ${commitHash.substr(0, 8)} - Timestamp: ${commitTime}`);
+            console.log(`✅ Changes committed successfully!\nCommit: ${commitHash.slice(0, 8)} - Timestamp: ${commitTime}`);
           } catch (commitError) {
             console.error("❌ Error committing changes:", commitError.message);
           }
