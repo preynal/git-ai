@@ -15,17 +15,13 @@ async function stageAllChanges() {
       }
       console.log("✅ All modified files have been staged successfully!");
 
-      // Show what was staged and their diffs
+      // Show what was staged with stats
       const finalStatus = await git.status();
       console.log("\nStaged changes:");
-      finalStatus.staged.forEach((file) => console.log(`- ${file}`));
-
-      // Show the diff of staged changes
-      const diff = await git.diff(["--staged"]);
-      if (diff) {
-        console.log("\nDiff of staged changes:");
-        console.log(diff);
-      }
+      
+      // Get diff stats for staged files
+      const diffStat = await git.diff(["--staged", "--stat"]);
+      console.log(diffStat);
     } else {
       console.log("No changes to stage.");
     }
