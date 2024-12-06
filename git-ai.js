@@ -39,7 +39,6 @@ async function main() {
 
       // Generate commit message suggestion
       const commitMessage = await generateCommitMessage(diff);
-      console.log("Suggested commit message:");
       console.log(`\x1b[32m\x1b[1m${commitMessage}\x1b[0m`);
 
       // Set up stdin for raw input

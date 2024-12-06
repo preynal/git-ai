@@ -42,7 +42,7 @@ export async function generateCommitMessage(diff) {
       max_tokens: 100,
     });
 
-    spinner.succeed('Commit message generated');
+    spinner.succeed('Generated commit message:');
     return completion.choices[0].message.content.trim();
   } catch (error) {
     spinner.fail('Failed to generate commit message');
