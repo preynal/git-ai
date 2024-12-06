@@ -1,6 +1,11 @@
-# AI Git Commit Message Generator
+# git-ai
 
-A CLI tool that uses OpenAI's GPT models to automatically generate meaningful and conventional commit messages based on your staged changes.
+It stages all changes and generates a human-readable commit message using language models.
+
+What it does:
+```bash
+git add . && git diff --staged | english | git commit -F -
+```
 
 ## Features
 
@@ -8,7 +13,6 @@ A CLI tool that uses OpenAI's GPT models to automatically generate meaningful an
 - Automatically analyzes staged git changes
 - Configurable file exclusions
 - Token counting and cost estimation
-- Uses GPT-4 for intelligent commit message generation
 
 ## Installation
 
@@ -51,10 +55,10 @@ It will add all changes to the staging area, generate a commit message, and you 
 
 The tool can be configured through `src/config.js`:
 
-- `excludedFiles`: Array of files to exclude from the diff analysis
-- `pricePerMillionTokens`: OpenAI API pricing configuration
-- `modelName`: GPT model to use
 - `systemMessage`: Custom prompt for the AI
+- `excludedFiles`: Array of files to exclude from the diff analysis
+- `modelName`: GPT model to use
+- `pricePerMillionTokens`: OpenAI API pricing configuration
 
 ## Requirements
 
