@@ -1,6 +1,4 @@
-import simpleGit from "simple-git";
-
-export const git = simpleGit();
+import {git} from "./git.js";
 
 export async function stageAllChanges() {
   try {

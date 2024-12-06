@@ -9,7 +9,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Load .env from the script's directory
 dotenv.config({ path: join(__dirname, '.env') });
 
-import { stageAllChanges, git } from "./src/stageChanges.js";
+import { stageAllChanges } from "./src/stageChanges.js";
+import { git } from "./src/git.js";
 import { countTokens } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
 import { excludedFiles, pricePerMillionTokens, modelName } from "./src/config.js";
@@ -59,7 +60,7 @@ async function main() {
 
             const execAsync = promisify(exec);
             const { stdout } = await execAsync(`git commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
-            
+
             // Get the commit hash from the commit output
             const commitHash = stdout.match(/\[.*?([a-f0-9]+)\]/)?.[1] || '';
             const commitTime = new Date().toLocaleString();
