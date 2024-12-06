@@ -2,7 +2,6 @@
   "name": "git-ai",
   "version": "0.1.0",
   "main": "./index.js",
-  "license": "MIT",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "stage-all": "node index.js",
@@ -10,11 +9,10 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "simple-git": "^3.21.0"
+    "simple-git": "3.27.0"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.1"
+    "eslint": "9.16.0",
+    "globals": "15.13.0"
   }
 }
