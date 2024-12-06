@@ -14,6 +14,7 @@ async function main() {
       console.log(
         `\nThis diff would use approximately ${tokenCount} tokens with ${modelName}`,
       );
+
       console.log("Excluded files:", excludedFiles.join(", "));
 
       // Generate commit message suggestion
