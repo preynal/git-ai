@@ -1,8 +1,8 @@
-const simpleGit = require("simple-git");
+import simpleGit from "simple-git";
 
-const git = simpleGit();
+export const git = simpleGit();
 
-async function stageAllChanges() {
+export async function stageAllChanges() {
   try {
     // Get the status of the repository
     const status = await git.status();
@@ -18,7 +18,7 @@ async function stageAllChanges() {
       // Show what was staged with stats
       const finalStatus = await git.status();
       console.log("\nStaged changes:");
-      
+
       // Get diff stats for staged files
       const diffStat = await git.diff(["--staged", "--stat"]);
       console.log(diffStat);
@@ -30,5 +30,3 @@ async function stageAllChanges() {
     process.exit(1);
   }
 }
-
-module.exports = { stageAllChanges, git };

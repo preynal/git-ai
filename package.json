@@ -2,6 +2,7 @@
   "name": "git-ai",
   "version": "0.1.0",
   "main": "./index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "stage-all": "node index.js",
@@ -11,6 +12,7 @@
   "dependencies": {
     "dotenv": "16.4.7",
     "openai": "4.76.0",
+    "ora": "8.1.1",
     "simple-git": "3.27.0",
     "tiktoken": "1.0.17"
   },

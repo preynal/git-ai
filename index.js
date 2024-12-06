@@ -1,7 +1,8 @@
-require("dotenv").config();
-const { stageAllChanges, git, countTokens, modelName } = require("./src");
-const { generateCommitMessage } = require("./src/commitMessage");
-const { excludedFiles } = require("./src/config");
+import "dotenv/config";
+import { stageAllChanges, git } from "./src/stageChanges.js";
+import { countTokens, modelName } from "./src/tokenCounter.js";
+import { generateCommitMessage } from "./src/commitMessage.js";
+import { excludedFiles, pricePerMillionTokens } from "./src/config.js";
 
 async function main() {
   await stageAllChanges();
@@ -11,11 +12,10 @@ async function main() {
     const diff = await git.diff(["--staged"]);
     if (diff) {
       const tokenCount = await countTokens(diff);
-      const { pricePerMillionTokens } = require("./src/config");
       const cost = (tokenCount / 1000000) * pricePerMillionTokens;
       console.log(
         `\nThis request will use approximately ${tokenCount} tokens with ${modelName}`,
-        `\nEstimated cost: $${cost.toFixed(4)} (at $${pricePerMillionTokens} per million tokens)`,
+        `\nEstimated cost: $${cost.toFixed(6)} (at $${pricePerMillionTokens} per million tokens)`,
       );
 
       console.log("Excluded files:", excludedFiles.join(", "));
