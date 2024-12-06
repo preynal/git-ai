@@ -8,7 +8,6 @@ export async function stageAllChanges() {
     // Get status to show what was staged
     const finalStatus = await git.status();
     if (finalStatus.staged.length > 0) {
-      console.log("Staged changes:");
       // Get diff stats for staged files with enhanced color
       const diffStat = await git.diff([
         "--staged",
@@ -19,7 +18,7 @@ export async function stageAllChanges() {
         "--stat-count=20",
         "--stat-graph-width=10"
       ]);
-      console.log(diffStat);
+      console.log(diffStat.split("\n").map(l => l.trim()).join("\n"));
     } else {
       console.log("No staged changes found.");
     }
