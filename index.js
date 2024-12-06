@@ -1,4 +1,5 @@
 const { stageAllChanges, git, countTokens, modelName } = require('./src');
+const { generateCommitMessage } = require('./src/commitMessage');
 
 async function main() {
     await stageAllChanges();
@@ -9,9 +10,14 @@ async function main() {
         if (diff) {
             const tokenCount = await countTokens(diff);
             console.log(`\nThis diff would use approximately ${tokenCount} tokens with ${modelName}`);
+            
+            // Generate commit message suggestion
+            const commitMessage = await generateCommitMessage(diff);
+            console.log('\nSuggested commit message:');
+            console.log(commitMessage);
         }
     } catch (error) {
-        console.error('❌ Error counting tokens:', error.message);
+        console.error('❌ Error:', error.message);
     }
 }
 
