@@ -1,4 +1,5 @@
 const OpenAI = require("openai");
+const ora = require('ora');
 const config = require('./config');
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
@@ -27,12 +28,15 @@ function filterExcludedFiles(diff) {
 }
 
 async function generateCommitMessage(diff) {
+  const spinner = ora('Generating commit message...').start();
+  
   try {
     // Filter out excluded files from the diff
     const filteredDiff = filterExcludedFiles(diff);
 
     // If there's no content after filtering, throw an error
     if (!filteredDiff.trim()) {
+      spinner.fail('No diff content remaining after filtering excluded files');
       throw new Error('No diff content remaining after filtering excluded files');
     }
 
@@ -51,8 +55,10 @@ async function generateCommitMessage(diff) {
       max_tokens: 100,
     });
 
+    spinner.succeed('Commit message generated');
     return completion.choices[0].message.content.trim();
   } catch (error) {
+    spinner.fail('Failed to generate commit message');
     throw new Error(`Failed to generate commit message: ${error.message}`);
   }
 }
