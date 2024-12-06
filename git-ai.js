@@ -24,7 +24,7 @@ async function main() {
       const tokenCount = await countTokens(diff);
       const cost = (tokenCount / 1_000_000) * pricePerMillionTokens;
       console.log(
-        `\nThis request will use approximately ${tokenCount} tokens with ${modelName}`,
+        `This request will use approximately ${tokenCount} tokens with ${modelName}`,
         `\nEstimated cost: $${cost.toFixed(6)} (at $${pricePerMillionTokens} per million tokens)`,
       );
 
@@ -73,7 +73,7 @@ async function main() {
                   reject(new Error(`Git commit failed with code ${code}`));
                 }
               });
-              
+
               gitCommit.on('error', (err) => {
                 reject(err);
               });
