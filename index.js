@@ -24,6 +24,22 @@ async function main() {
       const commitMessage = await generateCommitMessage(diff);
       console.log("\nSuggested commit message:");
       console.log(commitMessage);
+      
+      // Prompt for user confirmation
+      const readline = require('readline').createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+
+      readline.question('\nPress Enter to commit with this message, or Ctrl+C to cancel...', async (input) => {
+        readline.close();
+        try {
+          await git.commit(commitMessage);
+          console.log("✅ Changes committed successfully!");
+        } catch (commitError) {
+          console.error("❌ Error committing changes:", commitError.message);
+        }
+      });
     }
   } catch (error) {
     console.error("❌ Error:", error.message);
