@@ -1,9 +1,8 @@
 import "dotenv/config";
-import Readline from 'readline'
 import { stageAllChanges, git } from "./src/stageChanges.js";
-import { countTokens, modelName } from "./src/tokenCounter.js";
+import { countTokens } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
-import { excludedFiles, pricePerMillionTokens } from "./src/config.js";
+import { excludedFiles, pricePerMillionTokens, modelName } from "./src/config.js";
 
 async function main() {
   await stageAllChanges();
@@ -39,14 +38,14 @@ async function main() {
         if (key === '\u0003') {
           process.exit();
         }
-        
+
         // Enter key
         if (key === '\r' || key === '\n') {
           try {
             // Clear the previous line
             process.stdout.clearLine(0);
             process.stdout.cursorTo(0);
-            
+
             const result = await git.commit(commitMessage);
             const commitHash = result.commit;
             const commitTime = new Date().toLocaleString();
@@ -57,7 +56,7 @@ async function main() {
         } else {
           console.log("❌ Commit cancelled");
         }
-        
+
         // Clean up and exit
         process.stdin.setRawMode(false);
         process.stdin.pause();

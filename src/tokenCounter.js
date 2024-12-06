@@ -1,6 +1,5 @@
 import { encoding_for_model } from "tiktoken";
-
-export const modelName = "gpt-4o-mini";
+import { modelName } from "./config.js";
 
 export async function countTokens(text) {
   const enc = encoding_for_model(modelName);
