@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import ora from 'ora';
 import config from './config.js';
+import { countTokens } from './tokenCounter.js';
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -39,6 +40,13 @@ export async function generateCommitMessage(diff) {
     if (!filteredDiff.trim()) {
       spinner.fail('No diff content remaining after filtering excluded files');
       throw new Error('No diff content remaining after filtering excluded files');
+    }
+
+    // Check token count
+    const tokenCount = await countTokens(filteredDiff);
+    if (tokenCount > config.maxDiffTokens) {
+      spinner.fail(`Diff is too large (${tokenCount} tokens). Maximum allowed is ${config.maxDiffTokens} tokens`);
+      throw new Error(`Diff exceeds maximum token limit of ${config.maxDiffTokens}`);
     }
 
     const completion = await openai.chat.completions.create({
