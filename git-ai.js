@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import dotenv from 'dotenv';
 
 // Get the directory path of the current module
@@ -58,13 +57,27 @@ async function main() {
             process.stdout.clearLine(0);
             process.stdout.cursorTo(0);
 
-            const execAsync = promisify(exec);
-            const { stdout } = await execAsync(`git commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
+            // Use spawn to run git commit with inherited stdio
+            const gitCommit = spawn('git', ['commit', '-m', commitMessage], {
+              stdio: 'inherit'
+            });
 
-            // Get the commit hash from the commit output
-            const commitHash = stdout.match(/\[.*?([a-f0-9]+)\]/)?.[1] || '';
-            const commitTime = new Date().toLocaleString();
-            console.log(`✅ Changes committed successfully!\nCommit: ${commitHash.slice(0, 8)} - Timestamp: ${commitTime}`);
+            // Wait for the process to complete
+            await new Promise((resolve, reject) => {
+              gitCommit.on('close', (code) => {
+                if (code === 0) {
+                  const commitTime = new Date().toLocaleString();
+                  console.log(`✅ Changes committed successfully! - Timestamp: ${commitTime}`);
+                  resolve();
+                } else {
+                  reject(new Error(`Git commit failed with code ${code}`));
+                }
+              });
+              
+              gitCommit.on('error', (err) => {
+                reject(err);
+              });
+            });
           } catch (commitError) {
             console.error("❌ Error committing changes:", commitError.message);
           }
