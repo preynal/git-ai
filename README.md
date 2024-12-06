@@ -1,4 +1,4 @@
-# git-ai
+# `git ai`
 
 It stages all changes and generates a human-readable commit message using language models.
 
