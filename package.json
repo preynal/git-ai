@@ -10,6 +10,9 @@
     "lint2": "eslint .",
     "lint:fix": "eslint . --fix"
   },
+  "resolutions": {
+    "whatwg-url": "13.x"
+  },
   "dependencies": {
     "dotenv": "16.4.7",
     "openai": "4.76.0",
