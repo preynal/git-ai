@@ -9,7 +9,7 @@ async function main() {
 
   try {
     // Get the diff again to count tokens
-    const diff = await git.diff(["--staged"]);
+    const diff = await git.diff(["--staged", "--color"]);
     if (diff) {
       const tokenCount = await countTokens(diff);
       const cost = (tokenCount / 1000000) * pricePerMillionTokens;

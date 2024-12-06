@@ -19,8 +19,8 @@ export async function stageAllChanges() {
       const finalStatus = await git.status();
       console.log("\nStaged changes:");
 
-      // Get diff stats for staged files
-      const diffStat = await git.diff(["--staged", "--stat"]);
+      // Get diff stats for staged files with color
+      const diffStat = await git.diff(["--staged", "--stat", "--color"]);
       console.log(diffStat);
     } else {
       console.log("No changes to stage.");
