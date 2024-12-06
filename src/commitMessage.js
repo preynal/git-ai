@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const { excludedFiles } = require('./config');
+const config = require('./config');
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -12,11 +12,11 @@ function filterExcludedFiles(diff) {
     // Check for diff file headers
     if (line.startsWith('diff --git')) {
       // Check if this file should be excluded
-      skipFile = excludedFiles.some(excludedFile => 
+      skipFile = config.excludedFiles.some(excludedFile =>
         line.includes(`/${excludedFile}`) || line.includes(` ${excludedFile}`)
       );
     }
-    
+
     // Only include lines if we're not skipping the current file
     if (!skipFile) {
       filteredLines.push(line);
@@ -41,8 +41,7 @@ async function generateCommitMessage(diff) {
       messages: [
         {
           role: "system",
-          content:
-            "You are a helpful assistant that generates clear and concise git commit messages. Follow conventional commits format.",
+          content: config.systemMessage,
         },
         {
           role: "user",
