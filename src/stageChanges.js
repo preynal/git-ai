@@ -13,7 +13,6 @@ export async function stageAllChanges() {
       for (const file of status.modified) {
         await git.add(file);
       }
-      console.log("✅ All modified files have been staged successfully!");
     }
 
     // Show staged changes regardless of whether we just staged them or not
