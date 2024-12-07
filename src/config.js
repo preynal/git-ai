@@ -3,7 +3,18 @@ export const excludedFiles = ["yarn.lock", "package-lock.json", ".env", ".env.*"
 
 export const pricePerMillionTokens = 0.150;
 
-export const modelName = "gpt-4o-mini";
+export const models = {
+  openai: {
+    name: "gpt-4o-mini",
+    pricePerMillionTokens: 0.150
+  },
+  anthropic: {
+    name: "claude-3-sonnet-20240229",
+    pricePerMillionTokens: 0.163
+  }
+};
+
+export const defaultModel = "openai";
 
 // Maximum number of tokens allowed in the diff before refusing to process
 export const maxDiffTokens = 16_384;
