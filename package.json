@@ -14,6 +14,7 @@
     "whatwg-url": "13.x"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.32.1",
     "dotenv": "16.4.7",
     "minimatch": "10.0.1",
     "openai": "4.76.0",
