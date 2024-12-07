@@ -14,7 +14,7 @@ export const models = {
   }
 };
 
-export const defaultModel = "openai";
+export const selectedModel = "anthropic"; // Change this to switch models
 
 // Maximum number of tokens allowed in the diff before refusing to process
 export const maxDiffTokens = 16_384;

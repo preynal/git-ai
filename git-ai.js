@@ -12,7 +12,7 @@ import { stageAllChanges } from "./src/stageChanges.js";
 import { git } from "./src/git.js";
 import { countTokens } from "./src/tokenCounter.js";
 import { generateCommitMessage } from "./src/commitMessage.js";
-import { pricePerMillionTokens, modelName } from "./src/config.js";
+import { pricePerMillionTokens, models, selectedModel } from "./src/config.js";
 import { filterExcludedFiles } from './src/filterExcludedFiles.js';
 import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 
@@ -27,11 +27,13 @@ async function main() {
 
     if (diff) {
       const tokenCount = await countTokens(diff);
-      const cost = (tokenCount / 1_000_000) * pricePerMillionTokens;
-      console.log(
-        `\x1b[90mInput request: \x1b[33m${tokenCount}\x1b[90m tokens to ${modelName}\x1b[0m`,
-        `\n\x1b[90mEstimated cost: \x1b[33m$${cost.toFixed(6)}\x1b[0m \x1b[90m($${pricePerMillionTokens}/1M input tokens)\x1b[0m\n`,
-      );
+      if (tokenCount !== null) {
+        const cost = (tokenCount / 1_000_000) * pricePerMillionTokens;
+        console.log(
+          `\x1b[90mInput request: \x1b[33m${tokenCount}\x1b[90m tokens to ${models[selectedModel].name}\x1b[0m`,
+          `\n\x1b[90mEstimated cost: \x1b[33m$${cost.toFixed(6)}\x1b[0m \x1b[90m($${pricePerMillionTokens}/1M input tokens)\x1b[0m\n`,
+        );
+      }
 
       if (excludedFilesList.length > 0) {
         console.log("Excluded files:", `\x1b[33m${excludedFilesList.join(", ")}\x1b[0m`);
