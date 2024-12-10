@@ -2,6 +2,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
 import dotenv from 'dotenv';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 // Get the directory path of the current module
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -17,7 +19,18 @@ import { filterExcludedFiles } from './src/filterExcludedFiles.js';
 import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 
 async function main() {
-  await stageAllChanges();
+  const argv = yargs(hideBin(process.argv))
+    .option('s', {
+      alias: 'staged',
+      type: 'boolean',
+      description: 'Use already staged files without modifying staged area'
+    })
+    .help()
+    .argv;
+
+  if (!argv.staged) {
+    await stageAllChanges();
+  }
 
   try {
     // Get the diff again to count tokens
