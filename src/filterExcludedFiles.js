@@ -7,11 +7,13 @@ export function filterExcludedFiles(diff) {
   let skipFile = false;
 
   for (const line of lines) {
-    // Check for diff file headers
+    // Check for diff file headers that look like: diff --git a/path/to/file b/path/to/file
     if (line.startsWith('diff --git')) {
+      // Extract the file path from the diff header
+      const filePath = line.split(' ').pop().substring(2); // Remove 'b/' prefix
       // Check if this file should be excluded
       skipFile = excludedFiles.some(excludedPattern =>
-        minimatch(line, `*${excludedPattern}*`)
+        minimatch(filePath, excludedPattern)
       );
     }
 
