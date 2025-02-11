@@ -20,6 +20,7 @@ import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 
 
 const pushChanges = () => {
+  console.log("")
   execSync("git push", {stdio: "inherit"})
 }
 
