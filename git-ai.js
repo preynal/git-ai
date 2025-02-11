@@ -18,12 +18,23 @@ import { pricePerMillionTokens, models, selectedModel } from "./src/config.js";
 import { filterExcludedFiles } from './src/filterExcludedFiles.js';
 import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 
+
+const pushChanges = () => {
+  execSync("git push", {stdio: "inherit"})
+}
+
+
 async function main() {
   const argv = yargs(hideBin(process.argv))
     .option('s', {
       alias: 'staged',
       type: 'boolean',
       description: 'Use already staged files without modifying staged area'
+    })
+    .option('p', {
+      alias: 'push',
+      type: 'boolean',
+      description: 'Accept the commit immediately and push to the remote repository'
     })
     .help()
     .argv;
@@ -89,6 +100,9 @@ async function main() {
               gitCommit.on('close', (code) => {
                 if (code === 0) {
                   console.log(`\n\x1b[32m✔\x1b[0m Changes committed successfully!`);
+                  if (argv.push) {
+                    pushChanges();
+                  }
                   resolve();
                 } else {
                   reject(new Error(`Git commit failed with code ${code}`));

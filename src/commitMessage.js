@@ -27,7 +27,7 @@ export async function generateCommitMessage(diff) {
     }
 
     let response;
-    
+
     if (config.defaultModel === 'openai') {
       const openai = new OpenAI(process.env.OPENAI_API_KEY);
       const completion = await openai.chat.completions.create({
