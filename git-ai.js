@@ -20,7 +20,7 @@ import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 
 
 const pushChanges = () => {
-  console.log("\nRunning git push...")
+  console.log("\nRunning git push...\n")
   execSync("git push", {stdio: "inherit"})
 }
 
