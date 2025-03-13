@@ -42,6 +42,15 @@ async function main() {
 
   if (!argv.staged) {
     await stageAllChanges();
+  } else {
+    // If using already staged files, still run pre-commit hooks
+    const { runPreCommitHooks } = await import("./src/stageChanges.js");
+    const hooksSucceeded = await runPreCommitHooks();
+    
+    if (!hooksSucceeded) {
+      console.log("Pre-commit hooks failed. Fix the issues before continuing.");
+      process.exit(1);
+    }
   }
 
   try {
