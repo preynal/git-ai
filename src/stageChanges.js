@@ -17,7 +17,7 @@ export async function runPreCommitHooks() {
         // Use "sh" to run the script instead of executing it directly
         // This avoids the need for the script to be executable
         const preCommit = spawn('sh', [huskyPreCommitPath], {
-          stdio: ['ignore', 'pipe', 'pipe'],
+          stdio: ["inherit"],
           shell: true,
         });
 
