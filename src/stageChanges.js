@@ -17,7 +17,8 @@ export async function runPreCommitHooks() {
         // Use "sh" to run the script instead of executing it directly
         // This avoids the need for the script to be executable
         const preCommit = spawn('sh', [huskyPreCommitPath], {
-          stdio: ['ignore', 'pipe', 'pipe']
+          stdio: ['ignore', 'pipe', 'pipe'],
+          shell: true,
         });
 
         let output = '';
@@ -47,7 +48,7 @@ export async function runPreCommitHooks() {
         });
       });
     } else {
-      console.log("⚠️ .husky/pre-commit not found, skipping hooks");
+      console.log("⚠️ .husky/pre-commit not found, skipping hooks\n");
       return true;
     }
   } catch (error) {
@@ -63,6 +64,7 @@ export async function stageAllChanges() {
 
     // Run pre-commit hooks on staged changes
     const hooksSucceeded = await runPreCommitHooks();
+
     if (!hooksSucceeded) {
       console.log("Pre-commit hooks failed. Fix the issues before continuing.");
       process.exit(1);
