@@ -14,30 +14,17 @@ export async function runPreCommitHooks() {
     if (huskyExists) {
       // Run .husky/pre-commit if it exists
       return new Promise((resolve, reject) => {
-        // Use "sh" to run the script instead of executing it directly
-        // This avoids the need for the script to be executable
         const preCommit = spawn('sh', [huskyPreCommitPath], {
           stdio: "inherit",
           shell: true,
         });
 
-        let output = '';
-        preCommit.stdout.on('data', (data) => {
-          output += data.toString();
-          process.stdout.write(data);
-        });
-
-        preCommit.stderr.on('data', (data) => {
-          output += data.toString();
-          process.stderr.write(data);
-        });
-
         preCommit.on('close', (code) => {
           if (code === 0) {
-            console.log("✅ Husky pre-commit hooks passed");
+            console.log("✅ Husky pre-commit hooks passed\n");
             resolve(true);
           } else {
-            console.error("❌ Husky pre-commit hooks failed");
+            console.error("❌ Husky pre-commit hooks failed\n");
             resolve(false);
           }
         });

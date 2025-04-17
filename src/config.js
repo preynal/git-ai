@@ -1,12 +1,12 @@
 // Files to exclude from diff
 export const excludedFiles = ["yarn.lock", "package-lock.json", ".env", ".env.*"];
 
-export const pricePerMillionTokens = 2.5;
+export const pricePerMillionTokens = 2;
 
 export const models = {
   openai: {
     name: "gpt-4o",
-    pricePerMillionTokens: 2.5
+    pricePerMillionTokens: 2
   },
   anthropic: {
     name: "claude-3-sonnet-20240229",
