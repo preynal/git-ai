@@ -5,7 +5,7 @@ export const pricePerMillionTokens = 2;
 
 export const models = {
   openai: {
-    name: "gpt-4o",
+    name: "gpt-4.1",
     pricePerMillionTokens: 2
   },
   anthropic: {
