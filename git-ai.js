@@ -17,7 +17,7 @@ import { generateCommitMessage } from "./src/commitMessage.js";
 import { pricePerMillionTokens, models, selectedModel } from "./src/config.js";
 import { filterExcludedFiles } from './src/filterExcludedFiles.js';
 import { getExcludedFilesList } from './src/getExcludedFilesList.js';
-
+import { playFireworks } from './src/playFireworks.js';
 
 const pushChanges = () => {
   console.log("\nRunning git push...\n")
@@ -37,16 +37,20 @@ async function main() {
       type: 'boolean',
       description: 'Accept the commit immediately and push to the remote repository'
     })
+    .option('f', {
+      alias: 'fireworks',
+      type: 'boolean',
+      description: 'Play fireworks upon completion'
+    })
     .help()
     .argv;
 
   if (!argv.staged) {
     await stageAllChanges();
   } else {
-    // If using already staged files, still run pre-commit hooks
     const { runPreCommitHooks } = await import("./src/stageChanges.js");
     const hooksSucceeded = await runPreCommitHooks();
-    
+
     if (!hooksSucceeded) {
       console.log("Pre-commit hooks failed. Fix the issues before continuing.");
       process.exit(1);
@@ -87,11 +91,14 @@ async function main() {
 
           // Wait for the process to complete
           await new Promise((resolve, reject) => {
-            gitCommit.on('close', (code) => {
+            gitCommit.on('close', async(code) => {
               if (code === 0) {
                 console.log(`\n\x1b[32m✔\x1b[0m Changes committed successfully!`);
                 if (argv.push) {
                   pushChanges();
+                }
+                if (argv.fireworks) {
+                  await playFireworks();
                 }
                 resolve();
               } else {
