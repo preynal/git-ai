@@ -18,13 +18,13 @@
     "dotenv": "16.5.0",
     "yargs": "17.7.2",
     "minimatch": "10.0.1",
-    "openai": "4.95.0",
+    "openai": "4.95.1",
     "ora": "8.2.0",
     "simple-git": "3.27.0",
-    "tiktoken": "1.0.20"
+    "tiktoken": "1.0.21"
   },
   "devDependencies": {
-    "eslint": "9.24.0",
+    "eslint": "9.25.1",
     "globals": "16.0.0"
   }
 }
