@@ -3,7 +3,7 @@ import path from "path";
 
 export async function playFireworks(
   folderName = "fireworks",
-  loops = 3,
+  loops = 1,
   baseDir,
 ) {
   const __dirname = baseDir || path.join(process.cwd(), "node_modules/firew0rks");
@@ -55,4 +55,7 @@ export async function playFireworks(
     }
     i++;
   }
+
+  // Clear the screen after animation completes
+  process.stdout.write("\x1b[2J\x1b[0f");
 }
