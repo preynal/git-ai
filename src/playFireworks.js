@@ -6,7 +6,9 @@ export async function playFireworks(
   loops = 1,
   baseDir,
 ) {
-  const __dirname = baseDir || path.join(process.cwd(), "node_modules/firew0rks");
+  // Use the directory of the current file instead of cwd
+  const currentDir = path.dirname(new URL(import.meta.url).pathname);
+  const __dirname = baseDir || path.join(currentDir, "../node_modules/firew0rks");
 
   const folderPath = path.join(__dirname, folderName);
 
