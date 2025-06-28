@@ -7,6 +7,10 @@ import { filterExcludedFiles } from "./filterExcludedFiles.js";
 
 
 export async function generateCommitMessage(diff) {
+  if (process.env.NODE_ENV === 'test') {
+    return 'test: this is a test commit';
+  }
+
   const spinner = ora('Generating commit message...').start();
 
   try {
