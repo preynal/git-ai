@@ -30,13 +30,11 @@ export async function runPreCommitHooks() {
     if (stagedFiles.length > 0) {
       const statusBeforeRestage = await git.status()
       if (statusBeforeRestage.conflicted.length > 0) {
-        console.log("RESOLVE CONFLICTSSSS HERE WOWOOWOW", statusBeforeRestage.conflicted)
+        console.log("RESOLVE CONFLICTS HERE:", statusBeforeRestage.conflicted)
         console.log("untrained to handle conflicts, exiting now")
         process.exit(1)
         return
       }
-
-      // console.log("Git status before re-staging:", statusBeforeRestage)
 
       const restageSpinner = ora("Re-staging files...").start()
       await git.add(stagedFiles)
