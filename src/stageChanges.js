@@ -5,6 +5,26 @@ import path from 'path';
 
 // Runs pre-commit hooks on staged changes
 export async function runPreCommitHooks() {
+  console.log("MOCK: Synchronizing program...");
+  await new Promise((resolve, reject) => {
+    const syncProcess = spawn('echo "Synchronization complete."', {
+      stdio: 'inherit',
+      shell: true,
+    });
+
+    syncProcess.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Synchronization process exited with code ${code}`));
+      }
+    });
+
+    syncProcess.on('error', (err) => {
+      reject(err);
+    });
+  });
+
   console.log("Running pre-commit hooks...");
   try {
     // Check if .husky/pre-commit exists
