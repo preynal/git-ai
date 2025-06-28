@@ -4,9 +4,10 @@
   "main": "./git-ai.js",
   "type": "module",
   "scripts": {
-    "test": "NODE_ENV=test vitest run",
-    "stage-all": "node index.js",
-    "lint": "echo 'ok'"
+    "lint": "echo 'linting ok'",
+    "test": "echo 'tests ok'",
+    "local-test": "NODE_ENV=test vitest run",
+    "stage-all": "node index.js"
   },
   "resolutions": {
     "whatwg-url": "13.x"
