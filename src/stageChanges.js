@@ -2,6 +2,7 @@ import {git} from "./git.js";
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import ora from 'ora';
 
 // Runs pre-commit hooks on staged changes
 export async function runPreCommitHooks() {
@@ -15,20 +16,20 @@ export async function runPreCommitHooks() {
     return true;
   }
 
-  console.log("Synchronizing with remote repository...");
+  const syncSpinner = ora("Synchronizing with remote repository...").start();
   try {
     // Use --autostash to automatically stash local changes (including staged) before pull and rebase
     await git.pull(['--rebase', '--autostash']);
-    console.log("✅ Synchronization successful.");
+    syncSpinner.succeed("Synchronization successful.");
 
     // Re-stage the files that were staged before the pull.
     if (stagedFiles.length > 0) {
-      console.log("Re-staging files...");
+      const restageSpinner = ora("Re-staging files...").start();
       await git.add(stagedFiles);
-      console.log("✅ Files re-staged.");
+      restageSpinner.succeed("Files re-staged.");
     }
   } catch (e) {
-    console.error("❌ Synchronization failed. This is likely due to conflicts during rebase.");
+    syncSpinner.fail("Synchronization failed. This is likely due to conflicts during rebase.");
     
     const status = await git.status();
     if (status.conflicted.length > 0) {
@@ -49,7 +50,7 @@ export async function runPreCommitHooks() {
     process.exit(1);
   }
 
-  console.log("Running pre-commit hooks...");
+  const hooksSpinner = ora("Running pre-commit hooks...").start();
   try {
     // Check if .husky/pre-commit exists
     const huskyPreCommitPath = path.join(process.cwd(), '.husky', 'pre-commit');
@@ -59,39 +60,52 @@ export async function runPreCommitHooks() {
       // Run .husky/pre-commit if it exists
       return new Promise((resolve, reject) => {
         const preCommit = spawn('sh', [huskyPreCommitPath], {
-          stdio: "inherit",
+          stdio: "pipe",
           shell: true,
+        });
+
+        let output = '';
+        preCommit.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+        preCommit.stderr.on('data', (data) => {
+            output += data.toString();
         });
 
         preCommit.on('close', (code) => {
           if (code === 0) {
-            console.log("✅ Husky pre-commit hooks passed\n");
+            hooksSpinner.succeed("Husky pre-commit hooks passed");
             resolve(true);
           } else {
-            console.error("❌ Husky pre-commit hooks failed\n");
+            hooksSpinner.fail("Husky pre-commit hooks failed");
+            if (output.trim()) {
+                console.log(output.trim());
+            }
             resolve(false);
           }
         });
 
         preCommit.on('error', (err) => {
-          console.error("❌ Error running husky pre-commit hooks:", err.message);
+          hooksSpinner.fail(`Error running husky pre-commit hooks: ${err.message}`);
           reject(err);
         });
       });
     } else {
-      console.log("⚠️ .husky/pre-commit not found, skipping hooks\n");
+      hooksSpinner.warn(".husky/pre-commit not found, skipping hooks");
       return true;
     }
   } catch (error) {
-    console.error("❌ Error running pre-commit hooks:", error.message);
+    hooksSpinner.fail(`Error running pre-commit hooks: ${error.message}`);
     return false;
   }
 }
 
 export async function stageAllChanges() {
+  const stageSpinner = ora("Staging all changes...").start();
   try {
     // Stage all changes (new, modified, and deleted files)
     await git.add(["-A"]);
+    stageSpinner.succeed("All changes staged.");
 
     // Run pre-commit hooks on staged changes
     const hooksSucceeded = await runPreCommitHooks();
@@ -119,7 +133,7 @@ export async function stageAllChanges() {
       console.log("No staged changes found.");
     }
   } catch (error) {
-    console.error("❌ Error staging changes:", error.message);
+    stageSpinner.fail(`Error during staging process: ${error.message}`);
     process.exit(1);
   }
 }
