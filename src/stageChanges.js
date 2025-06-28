@@ -5,25 +5,49 @@ import path from 'path';
 
 // Runs pre-commit hooks on staged changes
 export async function runPreCommitHooks() {
-  console.log("MOCK: Synchronizing program...");
-  await new Promise((resolve, reject) => {
-    const syncProcess = spawn('echo "Synchronization complete."', {
-      stdio: 'inherit',
-      shell: true,
-    });
+  // Get the list of currently staged files to re-stage them after the pull.
+  const statusBeforePull = await git.status();
+  const stagedFiles = statusBeforePull.staged;
 
-    syncProcess.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Synchronization process exited with code ${code}`));
-      }
-    });
+  // If there are no staged files, we can skip the synchronization and hooks.
+  if (stagedFiles.length === 0) {
+    console.log("No staged files to process. Skipping synchronization and pre-commit hooks.");
+    return true;
+  }
 
-    syncProcess.on('error', (err) => {
-      reject(err);
-    });
-  });
+  console.log("Synchronizing with remote repository...");
+  try {
+    // Use --autostash to automatically stash local changes (including staged) before pull and rebase
+    await git.pull(['--rebase', '--autostash']);
+    console.log("✅ Synchronization successful.");
+
+    // Re-stage the files that were staged before the pull.
+    if (stagedFiles.length > 0) {
+      console.log("Re-staging files...");
+      await git.add(stagedFiles);
+      console.log("✅ Files re-staged.");
+    }
+  } catch (e) {
+    console.error("❌ Synchronization failed. This is likely due to conflicts during rebase.");
+    
+    const status = await git.status();
+    if (status.conflicted.length > 0) {
+        console.log("\nConflicts detected in the following files:");
+        status.conflicted.forEach(file => console.log(`  - ${file}`));
+        
+        console.log("\nShowing diff for conflicting files with conflict markers:");
+        const diff = await git.diff(status.conflicted);
+        console.log(diff);
+
+        console.log("\nPlease resolve the conflicts in your editor.");
+        console.log("After resolving conflicts, `git add` the files and run `git rebase --continue`.");
+        console.log("To abort the rebase and return to the state before pulling, run `git rebase --abort`.");
+    } else {
+        console.error("\nAn error occurred during `git pull --rebase`. Please check your git status and resolve any issues.");
+        console.error("Git command output:\n" + e.message);
+    }
+    process.exit(1);
+  }
 
   console.log("Running pre-commit hooks...");
   try {
