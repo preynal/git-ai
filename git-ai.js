@@ -74,7 +74,7 @@ async function main() {
       }
 
       if (excludedFilesList.length > 0) {
-        console.log("Excluded files:", `\x1b[33m${excludedFilesList.join(", ")}\x1b[0m`);
+        console.log("Files excluded from diff:", `\x1b[33m${excludedFilesList.join(", ")}\x1b[0m`);
       }
 
       // Generate commit message suggestion
