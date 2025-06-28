@@ -8,3 +8,4 @@ package-lock.json
 
 # Test runner reports
 /coverage
+tests/repos
