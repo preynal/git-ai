@@ -46,10 +46,10 @@ async function main() {
     .argv;
 
   if (!argv.staged) {
-    await stageAllChanges();
+    await stageAllChanges(argv.push);
   } else {
     const { runPreCommitHooks } = await import("./src/stageChanges.js");
-    const hooksSucceeded = await runPreCommitHooks();
+    const hooksSucceeded = await runPreCommitHooks(argv.push);
 
     if (!hooksSucceeded) {
       console.log("Pre-commit hooks failed. Fix the issues before continuing.");
