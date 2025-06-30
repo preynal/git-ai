@@ -23,7 +23,7 @@ export const models = {
 export const selectedModel = "openai"; // Change this to switch models
 
 // Maximum number of tokens allowed in the diff before refusing to process
-export const maxDiffTokens = 32_768;
+export const maxDiffTokens = 16_384;
 
 export const systemMessage =
   "You are a helpful assistant that generates clear and concise git commit messages. Follow conventional commits format. The message must not exceed one line. Do not add optional scope to the commit message. eg: use feat: myfeature and never feat(scope): myfeature.";

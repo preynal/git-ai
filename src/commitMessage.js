@@ -4,6 +4,7 @@ import ora from 'ora';
 import config from './config.js';
 import { countTokens } from './tokenCounter.js';
 import { filterExcludedFiles } from "./filterExcludedFiles.js";
+import { git } from './git.js';
 
 
 export async function generateCommitMessage(diff) {
@@ -25,9 +26,15 @@ export async function generateCommitMessage(diff) {
 
     // Check token count
     const tokenCount = await countTokens(filteredDiff);
+    let promptMessage;
+
     if (tokenCount > config.maxDiffTokens) {
-      spinner.fail(`Diff is too large (${tokenCount} tokens). Maximum allowed is ${config.maxDiffTokens} tokens`);
-      throw new Error(`Diff exceeds maximum token limit of ${config.maxDiffTokens}`);
+      spinner.warn(`Diff is too large (${tokenCount} tokens). Maximum allowed is ${config.maxDiffTokens}. Using file names only.`);
+      const diffSummary = await git.diff(["--name-status", "--staged"]);
+      const summaryContent = `The diff is too large to be displayed. Here is a summary of the changed files:\n\n${diffSummary}`;
+      promptMessage = `Please generate a commit message for these changes:\n\n${summaryContent}`;
+    } else {
+      promptMessage = `Please generate a commit message for this diff:\n\n${filteredDiff}`;
     }
 
     let response;
@@ -43,7 +50,7 @@ export async function generateCommitMessage(diff) {
           },
           {
             role: "user",
-            content: `Please generate a commit message for this diff:\n\n${filteredDiff}`,
+            content: promptMessage,
           },
         ],
         max_tokens: 100,
@@ -59,7 +66,7 @@ export async function generateCommitMessage(diff) {
         messages: [
           {
             role: "user",
-            content: `${config.systemMessage}\n\nPlease generate a commit message for this diff:\n\n${filteredDiff}`,
+            content: `${config.systemMessage}\n\n${promptMessage}`,
           }
         ],
       });
