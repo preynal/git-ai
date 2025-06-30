@@ -3,7 +3,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import ora from 'ora';
 import config from './config.js';
 import { countTokens } from './tokenCounter.js';
-import { filterExcludedFiles } from "./filterExcludedFiles.js";
 import { git } from './git.js';
 
 
@@ -15,8 +14,8 @@ export async function generateCommitMessage(diff) {
   const spinner = ora('Generating commit message...').start();
 
   try {
-    // Filter out excluded files from the diff
-    const filteredDiff = filterExcludedFiles(diff);
+    // The diff passed in is already filtered.
+    const filteredDiff = diff;
 
     // If there's no content after filtering, throw an error
     if (!filteredDiff.trim()) {
@@ -33,16 +32,28 @@ export async function generateCommitMessage(diff) {
       const diffSummary = await git.diff(["--name-status", "--staged"]);
       const summaryContent = `The diff is too large to be displayed. Here is a summary of the changed files:\n\n${diffSummary}`;
       promptMessage = `Please generate a commit message for these changes:\n\n${summaryContent}`;
+
+      // Recalculate token count for the summary and log the correction
+      const newTokenCount = await countTokens(promptMessage);
+      if (newTokenCount !== null) {
+        const modelConfig = config.models[config.defaultModel];
+        const cost = (newTokenCount / 1_000_000) * modelConfig.pricePerMillionTokens;
+        console.log(
+          `\n\x1b[90mCorrected - Input request: \x1b[33m${newTokenCount}\x1b[90m tokens to ${modelConfig.name}` +
+          `\n\x1b[90mCorrected - Estimated cost: \x1b[33m$${cost.toFixed(6)}\x1b[0m \x1b[90m($${modelConfig.pricePerMillionTokens}/M)\x1b[0m`
+        );
+      }
     } else {
       promptMessage = `Please generate a commit message for this diff:\n\n${filteredDiff}`;
     }
 
     let response;
+    const modelConfig = config.models[config.defaultModel];
 
     if (config.defaultModel === 'openai') {
       const openai = new OpenAI(process.env.OPENAI_API_KEY);
       const completion = await openai.chat.completions.create({
-        model: config.models.openai.name,
+        model: modelConfig.name,
         messages: [
           {
             role: "system",
@@ -61,7 +72,7 @@ export async function generateCommitMessage(diff) {
         apiKey: process.env.ANTHROPIC_API_KEY,
       });
       const completion = await anthropic.messages.create({
-        model: config.models.anthropic.name,
+        model: modelConfig.name,
         max_tokens: 100,
         messages: [
           {
