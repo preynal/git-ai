@@ -1,8 +1,9 @@
-import {git} from "./git.js";
-import { spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import ora from 'ora';
+import { spawn } from "child_process"
+import fs from "fs"
+import path from "path"
+import ora from "ora"
+
+import {git} from "./git.js"
 
 // Runs pre-commit hooks on staged changes
 export async function runPreCommitHooks(shouldPull = false) {
@@ -53,84 +54,74 @@ export async function runPreCommitHooks(shouldPull = false) {
           const diff = await git.diff(status.conflicted)
           console.log(diff)
 
-          console.log("\nPlease resolve the conflicts in your editor.");
-          console.log("After resolving conflicts, `git add` the files and run `git rebase --continue`.");
-          console.log("To abort the rebase and return to the state before pulling, run `git rebase --abort`.");
+          console.log("\nPlease resolve the conflicts in your editor.")
+          console.log("After resolving conflicts, `git add` the files and run `git rebase --continue`.")
+          console.log("To abort the rebase and return to the state before pulling, run `git rebase --abort`.")
       } else {
-          console.error("\nAn error occurred during `git pull --rebase`. Please check your git status and resolve any issues.");
-          console.error("Git command output:\n" + e.message);
+          console.error("\nAn error occurred during `git pull --rebase`. Please check your git status and resolve any issues.")
+          console.error("Git command output:\n" + e.message)
       }
-      process.exit(1);
+      process.exit(1)
     }
   }
 
-  const hooksSpinner = ora("Running pre-commit hooks...").start();
+  console.log("Running pre-commit hooks...")
+
   try {
     // Check if .husky/pre-commit exists
-    const huskyPreCommitPath = path.join(process.cwd(), '.husky', 'pre-commit');
-    const huskyExists = fs.existsSync(huskyPreCommitPath);
+    const huskyPreCommitPath = path.join(process.cwd(), ".husky", "pre-commit")
+    const huskyExists = fs.existsSync(huskyPreCommitPath)
 
     if (huskyExists) {
       // Run .husky/pre-commit if it exists
       return new Promise((resolve, reject) => {
-        const preCommit = spawn('sh', [huskyPreCommitPath], {
-          stdio: "pipe",
+        const preCommit = spawn("sh", [huskyPreCommitPath], {
+          stdio: "inherit",
           shell: true,
-        });
+        })
 
-        let output = '';
-        preCommit.stdout.on('data', (data) => {
-            output += data.toString();
-        });
-        preCommit.stderr.on('data', (data) => {
-            output += data.toString();
-        });
-
-        preCommit.on('close', (code) => {
+        preCommit.on("close", (code) => {
           if (code === 0) {
-            hooksSpinner.succeed("Husky pre-commit hooks passed");
-            resolve(true);
+            console.log("\x1b[32m✓\x1b[0m Husky pre-commit hooks passed\n")
+            resolve(true)
           } else {
-            hooksSpinner.fail("Husky pre-commit hooks failed");
-            if (output.trim()) {
-                console.log(output.trim());
-            }
-            resolve(false);
+            console.error("\x1b[31m✗\x1b[0m Husky pre-commit hooks failed\n")
+            resolve(false)
           }
-        });
+        })
 
-        preCommit.on('error', (err) => {
-          hooksSpinner.fail(`Error running husky pre-commit hooks: ${err.message}`);
-          reject(err);
-        });
-      });
+        preCommit.on("error", (err) => {
+          console.error("\x1b[31m✗\x1b[0m Error running husky pre-commit hooks:", err.message)
+          reject(err)
+        })
+      })
     } else {
-      hooksSpinner.warn(".husky/pre-commit not found, skipping hooks");
-      return true;
+      console.log("⚠️  .husky/pre-commit not found, skipping hooks\n")
+      return true
     }
   } catch (error) {
-    hooksSpinner.fail(`Error running pre-commit hooks: ${error.message}`);
-    return false;
+    console.error("\x1b[31m✗\x1b[0m Error running husky pre-commit hooks:", err.message)
+    return false
   }
 }
 
 export async function stageAllChanges(shouldPull = false) {
-  const stageSpinner = ora("Staging all changes...").start();
+  const stageSpinner = ora("Staging all changes...").start()
   try {
     // Stage all changes (new, modified, and deleted files)
-    await git.add(["-A"]);
-    stageSpinner.succeed("All changes staged.");
+    await git.add(["-A"])
+    stageSpinner.succeed("All changes staged.")
 
     // Run pre-commit hooks on staged changes
-    const hooksSucceeded = await runPreCommitHooks(shouldPull);
+    const hooksSucceeded = await runPreCommitHooks(shouldPull)
 
     if (!hooksSucceeded) {
-      console.log("Pre-commit hooks failed. Fix the issues before continuing.");
-      process.exit(1);
+      console.log("Pre-commit hooks failed. Fix the issues before continuing.")
+      process.exit(1)
     }
 
     // Get status to show what was staged
-    const finalStatus = await git.status();
+    const finalStatus = await git.status()
     if (finalStatus.staged.length > 0) {
       // Get diff stats for staged files with enhanced color
       const diffStat = await git.diff([
@@ -141,13 +132,13 @@ export async function stageAllChanges(shouldPull = false) {
         "--stat-name-width=50",
         "--stat-count=20",
         "--stat-graph-width=10"
-      ]);
-      console.log(diffStat.split("\n").map(l => l.trim()).join("\n"));
+      ])
+      console.log(diffStat.split("\n").map(l => l.trim()).join("\n"))
     } else {
-      console.log("No staged changes found.");
+      console.log("No staged changes found.")
     }
   } catch (error) {
-    stageSpinner.fail(`Error during staging process: ${error.message}`);
-    process.exit(1);
+    stageSpinner.fail(`Error during staging process: ${error.message}`)
+    process.exit(1)
   }
 }
