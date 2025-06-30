@@ -13,7 +13,7 @@ export async function runPreCommitHooks(shouldPull = false) {
 
   // If there are no staged files, we can skip the synchronization and hooks.
   if (stagedFiles.length === 0) {
-    console.log("No staged files to process. Skipping synchronization and pre-commit hooks.")
+    // console.log("No staged files to process. Skipping synchronization and pre-commit hooks.")
     return true
   }
 
