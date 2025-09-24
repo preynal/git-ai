@@ -1,17 +1,15 @@
 import OpenAI from "openai";
-import Anthropic from '@anthropic-ai/sdk';
 import ora from 'ora';
 import config from './config.js';
 import { countTokens } from './tokenCounter.js';
 import { git } from './git.js';
 
-
 export async function generateCommitMessage(diff) {
   if (process.env.NODE_ENV === 'test') {
-    return 'test: this is a test commit';
+    return "test: this is a test commit";
   }
 
-  const spinner = ora('Generating commit message...').start();
+  const spinner = ora("Generating commit message...").start();
 
   try {
     // The diff passed in is already filtered.
@@ -19,8 +17,8 @@ export async function generateCommitMessage(diff) {
 
     // If there's no content after filtering, throw an error
     if (!filteredDiff.trim()) {
-      spinner.fail('No diff content remaining after filtering excluded files');
-      throw new Error('No diff content remaining after filtering excluded files');
+      spinner.fail("No diff content remaining after filtering excluded files");
+      throw new Error("No diff content remaining after filtering excluded files");
     }
 
     // Check token count
@@ -36,58 +34,90 @@ export async function generateCommitMessage(diff) {
       // Recalculate token count for the summary and log the correction
       const newTokenCount = await countTokens(promptMessage);
       if (newTokenCount !== null) {
-        const modelConfig = config.models[config.defaultModel];
-        const cost = (newTokenCount / 1_000_000) * modelConfig.pricePerMillionTokens;
+        const cost = (newTokenCount / 1_000_000) * config.pricePerMillionTokens;
         console.log(
-          `\n\x1b[90mCorrected - Input request: \x1b[33m${newTokenCount}\x1b[90m tokens to ${modelConfig.name}` +
-          `\n\x1b[90mCorrected - Estimated cost: \x1b[33m$${cost.toFixed(6)}\x1b[0m \x1b[90m($${modelConfig.pricePerMillionTokens}/M)\x1b[0m`
+          `\n\x1b[90mCorrected - Input request: \x1b[33m${newTokenCount}\x1b[90m tokens to ${config.modelName}` +
+          `\n\x1b[90mCorrected - Estimated cost: \x1b[33m$${cost.toFixed(6)}\x1b[0m \x1b[90m($${config.pricePerMillionTokens}/M)\x1b[0m`
         );
       }
     } else {
       promptMessage = `Please generate a commit message for this diff:\n\n${filteredDiff}`;
     }
 
-    let response;
-    const modelConfig = config.models[config.defaultModel];
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    if (config.defaultModel === 'openai') {
-      const openai = new OpenAI(process.env.OPENAI_API_KEY);
-      const completion = await openai.chat.completions.create({
-        model: modelConfig.name,
-        messages: [
-          {
-            role: "system",
-            content: config.systemMessage,
-          },
-          {
-            role: "user",
-            content: promptMessage,
-          },
-        ],
-        max_tokens: 100,
+    const instruction = `${config.systemMessage}\n\n${promptMessage}`;
+    let resp = await openai.responses.create({
+      model: config.modelName,
+      input: instruction,
+      reasoning: { effort: config.reasoningEffort },
+    });
+
+    // Prefer the helper output_text; fallback to scanning structured output for 'output_text'
+    let response = (resp.output_text ?? "").trim();
+    if (!response && Array.isArray(resp.output)) {
+      const textPart = resp.output.find(p => p?.type === 'output_text');
+      if (textPart) {
+        response = (textPart.text ?? textPart?.content?.[0]?.text ?? "").trim();
+      }
+    }
+
+    if (!response) {
+      try {
+        console.error("\n[git-ai] Responses API raw response (empty output):\n" + JSON.stringify(resp, null, 2));
+      } catch (_) {
+        console.error("\n[git-ai] Responses API raw response (could not stringify)", resp);
+      }
+      throw new Error("Empty response from Responses API");
+    }
+    // If response is longer than ~100 chars, retry once with stricter instruction
+    if (response.length > 100) {
+      console.warn(`[git-ai] First attempt is ${response.length} chars (>100). Retrying with stricter length guidance...`);
+      const retryInstruction = `${config.systemMessage}\n\nIMPORTANT: The previous suggestion was ${response.length} characters, which is too long. Regenerate a single-line conventional commit message strictly under 100 characters, preserving intent, without scope and without quotes.\n\n${promptMessage}\n\nPrevious suggestion (too long):\n${response}`;
+      const resp2 = await openai.responses.create({
+        model: config.modelName,
+        input: retryInstruction,
+        reasoning: { effort: config.reasoningEffort },
       });
-      response = completion.choices[0].message.content.trim();
-    } else {
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-      const completion = await anthropic.messages.create({
-        model: modelConfig.name,
-        max_tokens: 100,
-        messages: [
-          {
-            role: "user",
-            content: `${config.systemMessage}\n\n${promptMessage}`,
-          }
-        ],
-      });
-      response = completion.content[0].text.trim();
+      let response2 = (resp2.output_text ?? "").trim();
+      if (!response2 && Array.isArray(resp2.output)) {
+        const textPart2 = resp2.output.find(p => p?.type === 'output_text');
+        if (textPart2) {
+          response2 = (textPart2.text ?? textPart2?.content?.[0]?.text ?? "").trim();
+        }
+      }
+
+      if (!response2) {
+        try {
+          console.error("\n[git-ai] Responses API raw response (empty output on retry):\n" + JSON.stringify(resp2, null, 2));
+        } catch (_) {
+          console.error("\n[git-ai] Responses API raw response (could not stringify on retry)", resp2);
+        }
+        throw new Error("Empty response from Responses API (retry)");
+      }
+      response = response2;
     }
 
     spinner.succeed('Generated commit message:');
-    return response;
+    return response.trim();
   } catch (error) {
-    spinner.fail('Failed to generate commit message');
+    try {
+      const details = {
+        status: error?.status,
+        code: error?.code,
+        type: error?.type,
+        message: error?.message,
+        headers: error?.headers,
+        request_id: error?.request_id,
+        error: error?.error,
+      };
+      console.error("\n[git-ai] OpenAI Responses API error details:\n" + JSON.stringify(details, null, 2));
+      // As a last resort, dump the whole error object too
+      console.error("\n[git-ai] OpenAI Responses API raw error:\n" + JSON.stringify(error, null, 2));
+    } catch (_) {
+      console.error("\n[git-ai] OpenAI Responses API error (non-serializable):", error);
+    }
+    spinner.fail(`Failed to generate commit message: ${error.message}`);
     throw new Error(`Failed to generate commit message: ${error.message}`);
   }
 }

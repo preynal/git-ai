@@ -1,13 +1,19 @@
-import { encoding_for_model } from "tiktoken";
+import { encoding_for_model, get_encoding } from "tiktoken";
 
-import { models, selectedModel } from "./config.js";
+import { modelName } from "./config.js";
 
 export async function countTokens(text) {
-  if (selectedModel === "openai") {
-    const enc = encoding_for_model(models.openai.name);
+  let enc;
+  try {
+    enc = encoding_for_model(modelName);
+  } catch (_) {
+    enc = get_encoding("cl100k_base");
+  }
+  try {
     const tokens = enc.encode(text);
-    enc.free();
     return tokens.length;
+  } finally {
+    enc.free();
   }
   return null; // Return null for non-OpenAI models
 }

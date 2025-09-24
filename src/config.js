@@ -7,32 +7,19 @@ export const excludedFiles = [
   "**/.env.*",
 ];
 
-export const pricePerMillionTokens = 2;
+export const reasoningEffort = "minimal"
 
-export const models = {
-  openai: {
-    name: "gpt-4.1",
-    pricePerMillionTokens: 2,
-  },
-  anthropic: {
-    name: "claude-3-sonnet-20240229",
-    pricePerMillionTokens: 0.163,
-  },
-};
-
-export const selectedModel = "openai"; // Change this to switch models
-
-// Maximum number of tokens allowed in the diff before refusing to process
-export const maxDiffTokens = 16_384;
+export const modelName = "gpt-5-mini"
+export const pricePerMillionTokens = 0.25;
 
 export const systemMessage =
-  "You are a helpful assistant that generates clear and concise git commit messages. Follow conventional commits format. The message must not exceed one line. Do not add optional scope to the commit message. eg: use feat: myfeature and never feat(scope): myfeature.";
+  "You are a helpful assistant that generates clear and concise git commit messages. Follow conventional commits format. The message must not exceed one line and should be under 100 characters. Do not add optional scope to the commit message. eg: use feat: myfeature and never feat(scope): myfeature.";
 
 export default {
   excludedFiles,
+  reasoningEffort,
+  modelName,
   pricePerMillionTokens,
-  maxDiffTokens,
+  maxDiffTokens: 16_384,
   systemMessage,
-  models,
-  defaultModel: selectedModel,
 };
