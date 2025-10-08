@@ -20,6 +20,6 @@ export default {
   reasoningEffort,
   modelName,
   pricePerMillionTokens,
-  maxDiffTokens: 16_384,
+  maxDiffTokens: 32_768,
   systemMessage,
 };
