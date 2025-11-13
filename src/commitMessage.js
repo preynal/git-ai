@@ -4,6 +4,90 @@ import config from './config.js';
 import { countTokens } from './tokenCounter.js';
 import { git } from './git.js';
 
+const MAX_COMMIT_MESSAGE_LENGTH = 100;
+const MAX_VALIDATION_RETRIES = 3;
+const scopedTypePattern = /^[a-zA-Z]+\([^)]*\)(?:!)?:/;
+
+function extractResponseText(resp) {
+  let responseText = (resp.output_text ?? "").trim();
+  if (!responseText && Array.isArray(resp.output)) {
+    const textPart = resp.output.find((part) => part?.type === "output_text");
+    if (textPart) {
+      responseText = (textPart.text ?? textPart?.content?.[0]?.text ?? "").trim();
+    }
+  }
+  return responseText;
+}
+
+function logRawResponse(label, payload) {
+  try {
+    console.error(`\n[git-ai] Responses API raw response (${label}):\n` + JSON.stringify(payload, null, 2));
+  } catch (_) {
+    console.error(`\n[git-ai] Responses API raw response (${label}, could not stringify)`, payload);
+  }
+}
+
+function ensureResponseText(resp, label) {
+  const text = extractResponseText(resp);
+  if (!text) {
+    logRawResponse(label, resp);
+    throw new Error(`Empty response from Responses API${label ? ` (${label})` : ""}`);
+  }
+  return text.trim();
+}
+
+function detectCommitMessageIssue(message) {
+  if (message.length > MAX_COMMIT_MESSAGE_LENGTH) {
+    return { type: "length", length: message.length };
+  }
+
+  if (scopedTypePattern.test(message)) {
+    return { type: "scope" };
+  }
+
+  return null;
+}
+
+async function enforceCommitMessageConstraints({ initialMessage, promptMessage, openai }) {
+  let attempt = initialMessage.trim();
+  let retries = 0;
+
+  while (true) {
+    const issue = detectCommitMessageIssue(attempt);
+    if (!issue) {
+      return attempt;
+    }
+
+    if (retries >= MAX_VALIDATION_RETRIES) {
+      throw new Error("Failed to generate a valid commit message after multiple retries");
+    }
+
+    retries += 1;
+    let retryInstruction;
+    let label;
+
+    if (issue.type === "length") {
+      console.warn(`[git-ai] Attempt ${retries} is ${issue.length} chars (>100). Retrying with stricter length guidance...`);
+      retryInstruction = `${config.systemMessage}\n\nIMPORTANT: The previous suggestion was ${issue.length} characters, which is too long. Regenerate a single-line conventional commit message strictly under 100 characters, preserving intent, without scope and without quotes.\n\n${promptMessage}\n\nPrevious suggestion (too long):\n${attempt}`;
+      label = `retry-length-${retries}`;
+    } else if (issue.type === "scope") {
+      console.warn(`[git-ai] Attempt ${retries} improperly used a commit scope. Retrying without scope...`);
+      retryInstruction = `${config.systemMessage}\n\nvoile de silencer un message, c'était pas bon, fais moi le nouveau. The previous suggestion incorrectly used a scope like "type(scope):". Regenerate a single-line conventional commit message without any scope/parentheses after the type and under 100 characters.\n\n${promptMessage}\n\nPrevious suggestion (invalid scope):\n${attempt}`;
+      label = `retry-scope-${retries}`;
+    } else {
+      throw new Error(`Unsupported commit validation issue: ${issue.type}`);
+    }
+
+    const resp = await openai.responses.create({
+      model: config.modelName,
+      input: retryInstruction,
+      reasoning: { effort: config.reasoningEffort },
+    });
+
+    attempt = ensureResponseText(resp, label);
+  }
+}
+
 export async function generateCommitMessage(diff) {
   if (process.env.NODE_ENV === 'test') {
     return "test: this is a test commit";
@@ -53,50 +137,8 @@ export async function generateCommitMessage(diff) {
       reasoning: { effort: config.reasoningEffort },
     });
 
-    // Prefer the helper output_text; fallback to scanning structured output for 'output_text'
-    let response = (resp.output_text ?? "").trim();
-    if (!response && Array.isArray(resp.output)) {
-      const textPart = resp.output.find(p => p?.type === 'output_text');
-      if (textPart) {
-        response = (textPart.text ?? textPart?.content?.[0]?.text ?? "").trim();
-      }
-    }
-
-    if (!response) {
-      try {
-        console.error("\n[git-ai] Responses API raw response (empty output):\n" + JSON.stringify(resp, null, 2));
-      } catch (_) {
-        console.error("\n[git-ai] Responses API raw response (could not stringify)", resp);
-      }
-      throw new Error("Empty response from Responses API");
-    }
-    // If response is longer than ~100 chars, retry once with stricter instruction
-    if (response.length > 100) {
-      console.warn(`[git-ai] First attempt is ${response.length} chars (>100). Retrying with stricter length guidance...`);
-      const retryInstruction = `${config.systemMessage}\n\nIMPORTANT: The previous suggestion was ${response.length} characters, which is too long. Regenerate a single-line conventional commit message strictly under 100 characters, preserving intent, without scope and without quotes.\n\n${promptMessage}\n\nPrevious suggestion (too long):\n${response}`;
-      const resp2 = await openai.responses.create({
-        model: config.modelName,
-        input: retryInstruction,
-        reasoning: { effort: config.reasoningEffort },
-      });
-      let response2 = (resp2.output_text ?? "").trim();
-      if (!response2 && Array.isArray(resp2.output)) {
-        const textPart2 = resp2.output.find(p => p?.type === 'output_text');
-        if (textPart2) {
-          response2 = (textPart2.text ?? textPart2?.content?.[0]?.text ?? "").trim();
-        }
-      }
-
-      if (!response2) {
-        try {
-          console.error("\n[git-ai] Responses API raw response (empty output on retry):\n" + JSON.stringify(resp2, null, 2));
-        } catch (_) {
-          console.error("\n[git-ai] Responses API raw response (could not stringify on retry)", resp2);
-        }
-        throw new Error("Empty response from Responses API (retry)");
-      }
-      response = response2;
-    }
+    let response = ensureResponseText(resp, "initial");
+    response = await enforceCommitMessageConstraints({ initialMessage: response, promptMessage, openai });
 
     spinner.succeed('Generated commit message:');
     return response.trim();

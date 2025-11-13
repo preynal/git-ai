@@ -75,7 +75,7 @@ export async function runPreCommitHooks(shouldPull = false) {
     if (huskyExists) {
       // Run .husky/pre-commit if it exists
       return new Promise((resolve, reject) => {
-        const preCommit = spawn("sh", [huskyPreCommitPath], {
+        const preCommit = spawn(`sh ${huskyPreCommitPath}`, {
           stdio: "inherit",
           shell: true,
         })
