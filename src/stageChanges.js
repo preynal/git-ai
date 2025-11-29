@@ -39,8 +39,35 @@ export async function runPreCommitHooks(shouldPull = false) {
         }
 
         const restageSpinner = ora("Re-staging files...").start()
-        await git.add(stagedFiles)
-        restageSpinner.succeed("Files re-staged.")
+
+        try {
+          const existingFiles = []
+          const missingFiles = []
+
+          for (const file of stagedFiles) {
+            const absolutePath = path.join(process.cwd(), file)
+            if (fs.existsSync(absolutePath)) {
+              existingFiles.push(file)
+            } else {
+              missingFiles.push(file)
+            }
+          }
+
+          if (existingFiles.length > 0) {
+            await git.add(existingFiles)
+          }
+
+          // If a file was staged for deletion before the pull, it no longer exists
+          // in the working tree. Stage those removals without failing the run.
+          if (missingFiles.length > 0) {
+            await git.raw(["rm", "--cached", "--ignore-unmatch", ...missingFiles])
+          }
+
+          restageSpinner.succeed("Files re-staged.")
+        } catch (restageError) {
+          restageSpinner.fail("Failed to re-stage files.")
+          throw restageError
+        }
       }
     } catch (e) {
       syncSpinner.fail("Synchronization failed. This is likely due to conflicts during rebase.")
