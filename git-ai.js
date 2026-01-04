@@ -48,8 +48,8 @@ async function main() {
   if (!argv.staged) {
     await stageAllChanges(argv.push);
   } else {
-    const status = await git.status();
-    if (status.staged.length === 0) {
+    const stagedPaths = await git.diff(["--staged", "--name-only"]);
+    if (!stagedPaths.trim()) {
       console.log("You used the --staged flag, but no files are staged.");
       console.log("Please use `git add` to stage files or run `git-ai` without the flag.");
       process.exit(0);

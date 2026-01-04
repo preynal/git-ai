@@ -5,14 +5,58 @@ import ora from "ora"
 
 import {git} from "./git.js"
 
+function unique(items) {
+  return [...new Set(items)]
+}
+
+function parseNullDelimitedNameStatus(diffOutput) {
+  if (!diffOutput) return []
+
+  const parts = diffOutput.split("\0")
+  const entries = []
+
+  let i = 0
+  while (i < parts.length) {
+    const status = parts[i]
+    if (!status) break
+    i += 1
+
+    const code = status[0]
+    if (code === "R" || code === "C") {
+      const from = parts[i] ?? ""
+      const to = parts[i + 1] ?? ""
+      i += 2
+
+      if (from && to) {
+        entries.push({code, status, from, to})
+      }
+
+      continue
+    }
+
+    const file = parts[i] ?? ""
+    i += 1
+
+    if (file) {
+      entries.push({code, status, file})
+    }
+  }
+
+  return entries
+}
+
+async function getStagedChanges() {
+  const diffOutput = await git.diff(["--cached", "--name-status", "-z"])
+  return parseNullDelimitedNameStatus(diffOutput)
+}
+
 // Runs pre-commit hooks on staged changes
 export async function runPreCommitHooks(shouldPull = false) {
   // Get the list of currently staged files to re-stage them after the pull.
-  const statusBeforePull = await git.status()
-  const stagedFiles = statusBeforePull.staged
+  const stagedChanges = await getStagedChanges()
 
   // If there are no staged files, we can skip the synchronization and hooks.
-  if (stagedFiles.length === 0) {
+  if (stagedChanges.length === 0) {
     // console.log("No staged files to process. Skipping synchronization and pre-commit hooks.")
     return true
   }
@@ -29,7 +73,7 @@ export async function runPreCommitHooks(shouldPull = false) {
       }
 
       // Re-stage the files that were staged before the pull.
-      if (stagedFiles.length > 0) {
+      if (stagedChanges.length > 0) {
         const statusBeforeRestage = await git.status()
         if (statusBeforeRestage.conflicted.length > 0) {
           console.log("RESOLVE CONFLICTS HERE:", statusBeforeRestage.conflicted)
@@ -41,26 +85,45 @@ export async function runPreCommitHooks(shouldPull = false) {
         const restageSpinner = ora("Re-staging files...").start()
 
         try {
-          const existingFiles = []
-          const missingFiles = []
+          const filesToAdd = []
+          const filesToRemove = []
 
-          for (const file of stagedFiles) {
+          for (const change of stagedChanges) {
+            if (change.code === "R") {
+              filesToAdd.push(change.to)
+              filesToRemove.push(change.from)
+              continue
+            }
+
+            if (change.code === "C") {
+              filesToAdd.push(change.to)
+              continue
+            }
+
+            if (change.code === "D") {
+              filesToRemove.push(change.file)
+              continue
+            }
+
+            filesToAdd.push(change.file)
+          }
+
+          const existingFilesToAdd = []
+          for (const file of unique(filesToAdd)) {
             const absolutePath = path.join(process.cwd(), file)
             if (fs.existsSync(absolutePath)) {
-              existingFiles.push(file)
+              existingFilesToAdd.push(file)
             } else {
-              missingFiles.push(file)
+              console.log(`⚠️  Skipping re-stage for missing file: ${file}`)
             }
           }
 
-          if (existingFiles.length > 0) {
-            await git.add(existingFiles)
+          if (existingFilesToAdd.length > 0) {
+            await git.add(existingFilesToAdd)
           }
 
-          // If a file was staged for deletion before the pull, it no longer exists
-          // in the working tree. Stage those removals without failing the run.
-          if (missingFiles.length > 0) {
-            await git.raw(["rm", "--cached", "--ignore-unmatch", ...missingFiles])
+          if (filesToRemove.length > 0) {
+            await git.raw(["rm", "--cached", "--ignore-unmatch", ...unique(filesToRemove)])
           }
 
           restageSpinner.succeed("Files re-staged.")
@@ -148,18 +211,17 @@ export async function stageAllChanges(shouldPull = false) {
     }
 
     // Get status to show what was staged
-    const finalStatus = await git.status()
-    if (finalStatus.staged.length > 0) {
-      // Get diff stats for staged files with enhanced color
-      const diffStat = await git.diff([
-        "--staged",
-        "--stat",
-        "--color=always",
-        "--stat-width=100",
-        "--stat-name-width=50",
-        "--stat-count=20",
-        "--stat-graph-width=10"
-      ])
+    const diffStat = await git.diff([
+      "--staged",
+      "--stat",
+      "--color=always",
+      "--stat-width=100",
+      "--stat-name-width=50",
+      "--stat-count=20",
+      "--stat-graph-width=10"
+    ])
+
+    if (diffStat.trim()) {
       console.log(diffStat.split("\n").map(l => l.trim()).join("\n"))
     } else {
       console.log("No staged changes found.")
