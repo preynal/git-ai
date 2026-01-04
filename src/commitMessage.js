@@ -8,6 +8,14 @@ const MAX_COMMIT_MESSAGE_LENGTH = 100;
 const MAX_VALIDATION_RETRIES = 3;
 const scopedTypePattern = /^[a-zA-Z]+\([^)]*\)(?:!)?:/;
 
+class CommitMessageValidationError extends Error {
+  constructor(message, failedAttempts) {
+    super(message);
+    this.name = "CommitMessageValidationError";
+    this.failedAttempts = failedAttempts;
+  }
+}
+
 function extractResponseText(resp) {
   let responseText = (resp.output_text ?? "").trim();
   if (!responseText && Array.isArray(resp.output)) {
@@ -51,6 +59,7 @@ function detectCommitMessageIssue(message) {
 async function enforceCommitMessageConstraints({ initialMessage, promptMessage, openai }) {
   let attempt = initialMessage.trim();
   let retries = 0;
+  const failedAttempts = [];
 
   while (true) {
     const issue = detectCommitMessageIssue(attempt);
@@ -58,8 +67,18 @@ async function enforceCommitMessageConstraints({ initialMessage, promptMessage, 
       return attempt;
     }
 
+    failedAttempts.push({
+      attemptNumber: failedAttempts.length + 1,
+      issue: issue.type,
+      detail: issue.type === "length" ? `${issue.length} chars` : "scope detected",
+      message: attempt,
+    });
+
     if (retries >= MAX_VALIDATION_RETRIES) {
-      throw new Error("Failed to generate a valid commit message after multiple retries");
+      throw new CommitMessageValidationError(
+        "Failed to generate a valid commit message after multiple retries",
+        failedAttempts,
+      );
     }
 
     retries += 1;
@@ -143,6 +162,17 @@ export async function generateCommitMessage(diff) {
     spinner.succeed('Generated commit message:');
     return response.trim();
   } catch (error) {
+    if (error.failedAttempts?.length) {
+      const formattedAttempts = error.failedAttempts
+        .map(({ attemptNumber, issue, detail, message }) => {
+          const issueInfo = detail ? `${issue} (${detail})` : issue;
+          return `Attempt ${attemptNumber} [${issueInfo}]:\n${message}`;
+        })
+        .join("\n---\n");
+
+      console.error(`\n[git-ai] Commit message validation attempts (all rejected):\n${formattedAttempts}`);
+    }
+
     try {
       const details = {
         status: error?.status,
