@@ -4,7 +4,7 @@ import config from './config.js';
 import { countTokens } from './tokenCounter.js';
 import { git } from './git.js';
 
-const MAX_COMMIT_MESSAGE_LENGTH = 100;
+const MAX_COMMIT_MESSAGE_LENGTH = config.maxCommitMessageLength ?? 100;
 const MAX_VALIDATION_RETRIES = 3;
 const scopedTypePattern = /^[a-zA-Z]+\([^)]*\)(?:!)?:/;
 
@@ -86,12 +86,12 @@ async function enforceCommitMessageConstraints({ initialMessage, promptMessage, 
     let label;
 
     if (issue.type === "length") {
-      console.warn(`[git-ai] Attempt ${retries} is ${issue.length} chars (>100). Retrying with stricter length guidance...`);
-      retryInstruction = `${config.systemMessage}\n\nIMPORTANT: The previous suggestion was ${issue.length} characters, which is too long. Regenerate a single-line conventional commit message strictly under 100 characters, preserving intent, without scope and without quotes.\n\n${promptMessage}\n\nPrevious suggestion (too long):\n${attempt}`;
+      console.warn(`[git-ai] Attempt ${retries} is ${issue.length} chars (>${MAX_COMMIT_MESSAGE_LENGTH}). Retrying with stricter length guidance...`);
+      retryInstruction = `${config.systemMessage}\n\nIMPORTANT: The previous suggestion was ${issue.length} characters, which is too long. Regenerate a single-line conventional commit message strictly under ${MAX_COMMIT_MESSAGE_LENGTH} characters, preserving intent, without scope and without quotes.\n\n${promptMessage}\n\nPrevious suggestion (too long):\n${attempt}`;
       label = `retry-length-${retries}`;
     } else if (issue.type === "scope") {
       console.warn(`[git-ai] Attempt ${retries} improperly used a commit scope. Retrying without scope...`);
-      retryInstruction = `${config.systemMessage}\n\nvoile de silencer un message, c'était pas bon, fais moi le nouveau. The previous suggestion incorrectly used a scope like "type(scope):". Regenerate a single-line conventional commit message without any scope/parentheses after the type and under 100 characters.\n\n${promptMessage}\n\nPrevious suggestion (invalid scope):\n${attempt}`;
+      retryInstruction = `${config.systemMessage}\n\nvoile de silencer un message, c'était pas bon, fais moi le nouveau. The previous suggestion incorrectly used a scope like "type(scope):". Regenerate a single-line conventional commit message without any scope/parentheses after the type and under ${MAX_COMMIT_MESSAGE_LENGTH} characters.\n\n${promptMessage}\n\nPrevious suggestion (invalid scope):\n${attempt}`;
       label = `retry-scope-${retries}`;
     } else {
       throw new Error(`Unsupported commit validation issue: ${issue.type}`);
