@@ -51,7 +51,7 @@ async function getStagedChanges() {
 }
 
 // Runs pre-commit hooks on staged changes
-export async function runPreCommitHooks(shouldPull = false) {
+export async function runPreCommitHooks(shouldPull = false, shouldSkipHooks = false) {
   // Get the list of currently staged files to re-stage them after the pull.
   const stagedChanges = await getStagedChanges()
 
@@ -155,6 +155,11 @@ export async function runPreCommitHooks(shouldPull = false) {
     }
   }
 
+  if (shouldSkipHooks) {
+    console.log("Skipping pre-commit hooks (--no-verify).\n")
+    return true
+  }
+
   console.log("Running pre-commit hooks...")
 
   try {
@@ -195,7 +200,7 @@ export async function runPreCommitHooks(shouldPull = false) {
   }
 }
 
-export async function stageAllChanges(shouldPull = false) {
+export async function stageAllChanges(shouldPull = false, shouldSkipHooks = false) {
   const stageSpinner = ora("Staging all changes...").start()
   try {
     // Stage all changes (new, modified, and deleted files)
@@ -203,7 +208,7 @@ export async function stageAllChanges(shouldPull = false) {
     stageSpinner.succeed("All changes staged.")
 
     // Run pre-commit hooks on staged changes
-    const hooksSucceeded = await runPreCommitHooks(shouldPull)
+    const hooksSucceeded = await runPreCommitHooks(shouldPull, shouldSkipHooks)
 
     if (!hooksSucceeded) {
       console.log("Pre-commit hooks failed. Fix the issues before continuing.")

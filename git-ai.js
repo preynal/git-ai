@@ -19,9 +19,10 @@ import { filterExcludedFiles } from './src/filterExcludedFiles.js';
 import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 import { playFireworks } from './src/playFireworks.js';
 
-const pushChanges = () => {
-  console.log("\nRunning git push...\n")
-  execSync("git push", {stdio: "inherit"})
+const pushChanges = (noVerify = false) => {
+  const pushCommand = noVerify ? "git push --no-verify" : "git push";
+  console.log(`\nRunning ${pushCommand}...\n`)
+  execSync(pushCommand, {stdio: "inherit"})
 }
 
 
@@ -37,6 +38,11 @@ async function main() {
       type: 'boolean',
       description: 'Accept the commit immediately and push to the remote repository'
     })
+    .option('n', {
+      alias: 'no-verify',
+      type: 'boolean',
+      description: 'Skip git hooks (manual pre-commit checks, commit hooks, and push hooks)'
+    })
     .option('f', {
       alias: 'fireworks',
       type: 'boolean',
@@ -46,7 +52,7 @@ async function main() {
     .argv;
 
   if (!argv.staged) {
-    await stageAllChanges(argv.push);
+    await stageAllChanges(argv.push, argv.noVerify);
   } else {
     const stagedPaths = await git.diff(["--staged", "--name-only"]);
     if (!stagedPaths.trim()) {
@@ -56,7 +62,7 @@ async function main() {
     }
 
     const { runPreCommitHooks } = await import("./src/stageChanges.js");
-    const hooksSucceeded = await runPreCommitHooks(argv.push);
+    const hooksSucceeded = await runPreCommitHooks(argv.push, argv.noVerify);
 
     if (!hooksSucceeded) {
       console.log("Pre-commit hooks failed. Fix the issues before continuing.");
@@ -92,7 +98,13 @@ async function main() {
       const commitChanges = async () => {
         try {
           // Use spawn to run git commit with inherited stdio
-          const gitCommit = spawn('git', ['commit', '-m', commitMessage], {
+          const commitArgs = ["commit"]
+          if (argv.noVerify) {
+            commitArgs.push("--no-verify")
+          }
+          commitArgs.push("-m", commitMessage)
+
+          const gitCommit = spawn('git', commitArgs, {
             stdio: 'inherit'
           });
 
@@ -102,7 +114,7 @@ async function main() {
               if (code === 0) {
                 console.log(`\n\x1b[32m✔\x1b[0m Changes committed successfully!`);
                 if (argv.push) {
-                  pushChanges();
+                  pushChanges(argv.noVerify);
                 }
                 if (argv.fireworks) {
                   await playFireworks();

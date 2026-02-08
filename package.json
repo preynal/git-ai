@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "lint": "echo 'linting ok'",
-    "test": "echo 'tests ok'",
-    "local-test": "NODE_ENV=test vitest run",
+    "test": "NODE_ENV=test vitest run",
     "stage-all": "node index.js"
   },
   "overrides": {
