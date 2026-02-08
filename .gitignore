@@ -4,7 +4,6 @@ node_modules/
 .aider*
 .env
 *.log
-package-lock.json
 
 # Test runner reports
 /coverage

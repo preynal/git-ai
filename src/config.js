@@ -1,6 +1,5 @@
 // Files to exclude from diff
 export const excludedFiles = [
-  "**/yarn.lock",
   "**/Podfile.lock",
   "**/package-lock.json",
   "**/.env",

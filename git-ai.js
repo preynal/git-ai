@@ -7,8 +7,8 @@ import { hideBin } from 'yargs/helpers';
 
 // Get the directory path of the current module
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// Load .env from the script's directory
-dotenv.config({ path: join(__dirname, '.env') });
+// Load .env from the script's directory without dotenv runtime ads/log noise.
+dotenv.config({ path: join(__dirname, '.env'), quiet: true });
 
 import { stageAllChanges } from "./src/stageChanges.js";
 import { git } from "./src/git.js";

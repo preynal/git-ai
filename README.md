@@ -24,8 +24,6 @@ cd ./git-ai
 
 2. Install dependencies:
 ```bash
-yarn
-# or
 npm install
 ```
 
