@@ -22,6 +22,6 @@ export default {
   modelName,
   pricePerMillionTokens,
   maxCommitMessageLength,
-  maxDiffTokens: 32_768,
+  maxDiffTokens: 65_536,
   systemMessage,
 };
