@@ -6,9 +6,9 @@ export const excludedFiles = [
   "**/.env.*",
 ];
 
-export const reasoningEffort = "minimal"
+export const reasoningEffort = "low"
 
-export const modelName = "gpt-5-mini"
+export const modelName = "gpt-5.4-mini"
 export const pricePerMillionTokens = 0.25;
 
 export const maxCommitMessageLength = 110;

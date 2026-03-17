@@ -7,6 +7,21 @@ import { git } from './git.js';
 const MAX_COMMIT_MESSAGE_LENGTH = config.maxCommitMessageLength ?? 100;
 const MAX_VALIDATION_RETRIES = 3;
 const scopedTypePattern = /^[a-zA-Z]+\([^)]*\)(?:!)?:/;
+const reasoningEffortAliases = {
+  minimal: "low",
+};
+
+function getReasoningOptions() {
+  const effort = reasoningEffortAliases[config.reasoningEffort] ?? config.reasoningEffort;
+
+  if (!effort) {
+    return {};
+  }
+
+  return {
+    reasoning: { effort },
+  };
+}
 
 class CommitMessageValidationError extends Error {
   constructor(message, failedAttempts) {
@@ -100,7 +115,7 @@ async function enforceCommitMessageConstraints({ initialMessage, promptMessage, 
     const resp = await openai.responses.create({
       model: config.modelName,
       input: retryInstruction,
-      reasoning: { effort: config.reasoningEffort },
+      ...getReasoningOptions(),
     });
 
     attempt = ensureResponseText(resp, label);
@@ -153,7 +168,7 @@ export async function generateCommitMessage(diff) {
     let resp = await openai.responses.create({
       model: config.modelName,
       input: instruction,
-      reasoning: { effort: config.reasoningEffort },
+      ...getReasoningOptions(),
     });
 
     let response = ensureResponseText(resp, "initial");

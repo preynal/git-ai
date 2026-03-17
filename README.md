@@ -1,6 +1,6 @@
 # `git ai`
 
-Stage all changes and generate a commit message using OpenAI gpt-5 with one command.
+Stage all changes and generate a commit message using OpenAI gpt-5.4-mini with one command.
 
 What it does:
 ```bash
@@ -55,7 +55,7 @@ The tool can be configured through `src/config.js`:
 
 - `systemMessage`: Custom prompt for the AI
 - `excludedFiles`: Array of files to exclude from the diff analysis
-- `modelName`: GPT model to use (default: `gpt-5`)
+- `modelName`: GPT model to use (default: `gpt-5.4-mini`)
 - `pricePerMillionTokens`: pricing used for local cost estimation
 
 ## Requirements
