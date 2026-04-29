@@ -26,11 +26,24 @@ const pushChanges = (noVerify = false) => {
   execSync(pushCommand, {stdio: "inherit"})
 }
 
+const normalizeArgs = (args) => args.flatMap((arg) => {
+  const shortFlagsMatch = arg.match(/^-(?!-)([a-z]+)$/i);
+
+  if (!shortFlagsMatch || !shortFlagsMatch[1].includes("sw")) {
+    return [arg];
+  }
+
+  const shortFlags = shortFlagsMatch[1].replace("sw", "");
+
+  return [
+    ...(shortFlags ? [`-${shortFlags}`] : []),
+    "--star-wars",
+  ];
+});
+
 
 async function main() {
-  const args = hideBin(process.argv).map((arg) => (
-    arg === "-sw" ? "--star-wars" : arg
-  ));
+  const args = normalizeArgs(hideBin(process.argv));
 
   const argv = yargs(args)
     .option('s', {
@@ -125,11 +138,11 @@ async function main() {
                 if (argv.push) {
                   pushChanges(argv.noVerify);
                 }
-                if (argv.fireworks) {
-                  await playFireworks();
-                }
                 if (argv.starWars) {
                   await playStarWars();
+                }
+                if (argv.fireworks) {
+                  await playFireworks();
                 }
                 resolve();
               } else {
