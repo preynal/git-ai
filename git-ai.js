@@ -18,6 +18,7 @@ import { pricePerMillionTokens, modelName } from "./src/config.js";
 import { filterExcludedFiles } from './src/filterExcludedFiles.js';
 import { getExcludedFilesList } from './src/getExcludedFilesList.js';
 import { playFireworks } from './src/playFireworks.js';
+import { playStarWars } from './src/playStarWars.js';
 
 const pushChanges = (noVerify = false) => {
   const pushCommand = noVerify ? "git push --no-verify" : "git push";
@@ -27,7 +28,11 @@ const pushChanges = (noVerify = false) => {
 
 
 async function main() {
-  const argv = yargs(hideBin(process.argv))
+  const args = hideBin(process.argv).map((arg) => (
+    arg === "-sw" ? "--star-wars" : arg
+  ));
+
+  const argv = yargs(args)
     .option('s', {
       alias: 'staged',
       type: 'boolean',
@@ -47,6 +52,10 @@ async function main() {
       alias: 'fireworks',
       type: 'boolean',
       description: 'Play fireworks upon completion'
+    })
+    .option('star-wars', {
+      type: 'boolean',
+      description: 'Stream Star Wars upon completion (-sw)'
     })
     .help()
     .argv;
@@ -118,6 +127,9 @@ async function main() {
                 }
                 if (argv.fireworks) {
                   await playFireworks();
+                }
+                if (argv.starWars) {
+                  await playStarWars();
                 }
                 resolve();
               } else {
