@@ -21,7 +21,26 @@ import { playFireworks } from './src/playFireworks.js';
 import { playStarWars } from './src/playStarWars.js';
 
 const pushChanges = (noVerify = false) => {
-  const pushCommand = noVerify ? "git push --no-verify" : "git push";
+  // Detect whether the current branch already has an upstream tracking branch.
+  // A brand new branch that has never been pushed has none, so a plain
+  // `git push` would fail with "no upstream branch". In that case, push with
+  // --set-upstream so the branch is created on the remote and tracked.
+  let hasUpstream = true
+  try {
+    execSync("git rev-parse --abbrev-ref --symbolic-full-name @{u}", { stdio: "ignore" })
+  } catch {
+    hasUpstream = false
+  }
+
+  const verifyFlag = noVerify ? " --no-verify" : ""
+  let pushCommand
+  if (hasUpstream) {
+    pushCommand = `git push${verifyFlag}`
+  } else {
+    const branch = execSync("git rev-parse --abbrev-ref HEAD").toString().trim()
+    pushCommand = `git push${verifyFlag} --set-upstream origin ${branch}`
+  }
+
   console.log(`\nRunning ${pushCommand}...\n`)
   execSync(pushCommand, {stdio: "inherit"})
 }

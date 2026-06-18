@@ -61,7 +61,19 @@ export async function runPreCommitHooks(shouldPull = false, shouldSkipHooks = fa
     return true
   }
 
-  if (shouldPull) {
+  // A brand new branch that has never been pushed has no upstream tracking
+  // branch, so there is nothing to pull/rebase against. Skip the sync
+  // gracefully instead of failing with "no tracking information".
+  const syncStatus = shouldPull ? await git.status() : null
+  const hasUpstream = syncStatus ? Boolean(syncStatus.tracking) : false
+
+  if (shouldPull && !hasUpstream) {
+    ora().info(
+      `No upstream configured for branch "${syncStatus.current}". Skipping synchronization.`
+    )
+  }
+
+  if (shouldPull && hasUpstream) {
     const syncSpinner = ora("Synchronizing with remote repository...").start()
     try {
       // Use --autostash to automatically stash local changes (including staged) before pull and rebase
